@@ -71,7 +71,7 @@ int main (int argc, char *argv[]) {
 
 		/* Preparing message for server */
 		strcpy(buf, "GET ");
-		strcat(buf, argv[4 + i]);
+		strcat(buf, argv[3 + i]);
 		strcat(buf, "\r\n");
 
 		len = strlen(buf);
