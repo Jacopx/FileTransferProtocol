@@ -8,11 +8,12 @@
 #include <inttypes.h>
 #include "../errlib.h"
 #include "../sockwrap.h"
+#include <time.h>
 
 #define RBUFLEN		128 /* Buffer length */
 
 /* FUNCTION PROTOTYPES */
-int mygetline(char *line, size_t maxline, char *prompt);
+int clientWriten(int s, char *buf, int n);
 void service(int s);
 
 /* GLOBAL VARIABLES */
@@ -81,6 +82,9 @@ int main (int argc, char *argv[]) {
 void service(int s) {
   char	buf[RBUFLEN];		/* reception buffer */
   int	 	n;
+	long int sz;
+	char temp[10000], *t;
+	FILE *fp = NULL;
 
 	/* Infinite service loop */
 	for (;;) {
@@ -93,48 +97,50 @@ void service(int s) {
 	       printf("Socket %d closed\n", s);
 	       break;
 
-	    } else if (n==0) {
-
-	       printf("Connection closed by party on socket %d\n",s);
-	       close(s);
-	       break;
-
 	    } else {
 
 	       printf("Received data from socket %03d :\n", s);
 	       buf[n]=0;
-	       printf("[%s]\n",buf);
+				 t = strtok(buf, " ");
+	       printf("%s\n", t);
+				 t = strtok(NULL, " ");
+				 printf("%s", t);
 
-	       if(writen(s, buf, n) != n) {
-					 printf("Write error while replying\n");
+				 if((fp = fopen("small_file1.txt", "rb")) == NULL) {
+						 /* Missing file */
+						 printf("File not found! Replying the error to the client...");
+						 strcpy(buf, "-ERR\r\n");
+
+						 /* Replying to the client with error */
+						 if(writen(s, buf, n) != n) {
+							 printf("Write error while replying\n");
+						 } else {
+							 printf("Reply sent\n");
+						 }
+
 				 } else {
-					 printf("Reply sent\n");
+					 /* Available file */
+
+					 fseek(fp, 0L, SEEK_END);
+					 sz = ftell(fp);
+					 fseek(fp, 0L, SEEK_SET);
+
+					 strcpy(buf, "+OK\r\n");
+					 sprintf(temp, "%ld", sz);
+					 strcat(buf, temp);
+					 sprintf(temp, "%lu", (unsigned long)time(NULL));
+					 strcat(buf, temp);
+					 send(s, buf, n, 0);
+
+					 while( (n = fread(buf, 1, sizeof(buf), fp)) >0 ){
+						 send(s, buf, n, 0);
+					 }
+
+					 fclose(fp);
+					 close(s);
 				 }
+
 	    }
 	}
 
-}
-
-/* Gets a line of text from standard input after having printed a prompt string
-   Substitutes end of line with '\0'
-   Empties standard input buffer but stores at most maxline-1 characters in the
-   passed buffer
-*/
-int mygetline(char *line, size_t maxline, char *prompt) {
-	char	ch;
-	size_t  i;
-
-	printf("%s", prompt);
-	for (i=0; i< maxline-1 && (ch = getchar()) != '\n' && ch != EOF; i++) {
-		*line++ = ch;
-	}
-
-	*line = '\0';
-	while (ch != '\n' && ch != EOF)
-		ch = getchar();
-
-	if (ch == EOF)
-		return(EOF);
-	else
-		return(1);
 }
