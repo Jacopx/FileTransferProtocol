@@ -8,7 +8,7 @@
 #include     "../errlib.h"
 #include     "../sockwrap.h"
 
-#define BUFLEN	128 /* BUFFER LENGTH */
+#define BUFLEN	256 /* BUFFER LENGTH */
 
 /* FUNCTION PROTOTYPES */
 
@@ -61,19 +61,16 @@ int main (int argc, char *argv[]) {
 	/* connect */
 	showAddr("Connecting to target address", &saddr);
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
-	printf("done.\n");
-
-	/* main client loop */
-	printf("Enter line 'close' or 'stop' to close connection and stop client.\n");
+	printf("done.\nStarting cycling...");
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
 		size_t	len;
 
-		/* Cleaning buffer */
-		memset(buf,0,sizeof(buf));
+		printf("File #%d...\n", i);
+
 		/* Preparing message for server */
-		strcat(buf,"GET ");
+		strcpy(buf, "GET ");
 		strcat(buf, argv[4 + i]);
 		strcat(buf, "\r\n");
 
