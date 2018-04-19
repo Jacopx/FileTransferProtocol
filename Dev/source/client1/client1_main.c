@@ -83,22 +83,40 @@ int main (int argc, char *argv[]) {
 		printf("waiting for file #%d...\n", i);
 
 		/* Create file where data will be stored */
-		fp = fopen(argv[4 + i], "ab");
-		if(NULL == fp) {
+		fp = fopen(argv[3 + i], "w");
+		if(fp == NULL) {
 				printf("Error opening file");
 				return 1;
 		}
+
+		/* Receive RESPONSE info */
+		bytesReceived = read(s, rbuf, 5);
+		if(bytesReceived == -1) {
+			err_quit("Error receving reply #%d...", i);
+		}
+		printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+
+		/* Receive TIMESTAMP info */
+		bytesReceived = read(s, rbuf, 8);
+		if(bytesReceived == -1) {
+			err_quit("Error receving timestamp #%d...", i);
+		}
+		printf("Bytes received %d: %s\n", bytesReceived, rbuf);
 
 		/* Receive data in chunks of 256 bytes */
 		while((bytesReceived = read(s, rbuf, BUFLEN)) > 0) {
 			if(bytesReceived == -1) {
 				err_quit("Error receving file #%d...", i);
 			}
-			printf("Bytes received %d\n", bytesReceived);
+			printf("Bytes received %d: %s\n", bytesReceived, rbuf);
 			fwrite(rbuf, 1, bytesReceived, fp);
+
+			if(BUFLEN - bytesReceived > 0) {
+				break;
+			}
 		}
 
-		printf("File saved with name: %s\n", argv[4 + i]);
+		printf("File saved with name: %s\n", argv[3 + i]);
 		fclose(fp);
 
 		printf("===========================================================\n");
