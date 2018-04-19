@@ -1,44 +1,48 @@
-/*
- * TEMPLATE
- */
- #include     <stdlib.h>
- #include     <string.h>
- #include     <inttypes.h>
- #include     "../errlib.h"
- #include     "../sockwrap.h"
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *        Distributed Programming - Lab2 [Client] == Jacopo Nasi           *
+ *      Repo avail: https://github.com/Jacopx/FileTransferProtocol         *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+#include     <stdlib.h>
+#include     <string.h>
+#include     <inttypes.h>
+#include     "../errlib.h"
+#include     "../sockwrap.h"
 
- #define BUFLEN	128 /* BUFFER LENGTH */
+#define BUFLEN	128 /* BUFFER LENGTH */
 
- /* FUNCTION PROTOTYPES */
- int mygetline(char * line, size_t maxline, char *prompt);
- int iscloseorstop(char *buf);
+/* FUNCTION PROTOTYPES */
 
- /* GLOBAL VARIABLES */
- char *prog_name;
+
+/* GLOBAL VARIABLES */
+char *prog_name;
 
 int main (int argc, char *argv[]) {
-	char     	   buf[BUFLEN];		/* transmission buffer */
+	char     buf[BUFLEN];		/* transmission buffer */
 	char	   rbuf[BUFLEN];	/* reception buffer */
 
 	uint16_t	   tport_n, tport_h;	/* server port number (net/host ord) */
 
-	int		   s;
-	int		   result;
+	int				s = 0;
+	int				result = 0;
+	int				bytesReceived = 0;
 	struct sockaddr_in	saddr;		/* server address structure */
 	struct in_addr	sIPaddr; 	/* server IP addr. structure */
+	FILE *fp = NULL; /* File pointer for saving */
 
 	prog_name = argv[0];
+	if( argc < 4) {
+		printf("Usage: prog_nae [IP Address] [Port #] [FileName1] [FileName2] ...");
+		exit(2);
+	}
 
- /* input IP address and port of server */
-	mygetline(buf, BUFLEN, "Enter host IPv4 address (dotted notation) : ");
-	result = inet_aton(buf, &sIPaddr);
+
+	/* Save IP and port # in struct */
+	result = inet_aton(argv[1], &sIPaddr);
 
 	if (!result)
 		err_quit("Invalid address");
 
-	mygetline(buf, BUFLEN, "Enter port : ");
-
-	if (sscanf(buf, "%" SCNu16, &tport_h)!=1)
+	if (sscanf(argv[2], "%" SCNu16, &tport_h)!=1)
 		err_quit("Invalid port number");
 
 	tport_n = htons(tport_h);
@@ -62,57 +66,47 @@ int main (int argc, char *argv[]) {
 	/* main client loop */
 	printf("Enter line 'close' or 'stop' to close connection and stop client.\n");
 
-	for (buf[0]='\0' ; !iscloseorstop(buf); )
-	{
-			size_t	len;
+	/* One cycle for each file remaining */
+	for(int i = 0; i < (argc - 3); ++i) {
+		size_t	len;
 
-			mygetline(buf, BUFLEN, "Enter line (max 127 char): ");
-			strcat(buf,"\n");
-			len = strlen(buf);
-			if(writen(s, buf, len) != len) {
-				printf("Write error\n");
-				break;
-			}
+		/* Cleaning buffer */
+		memset(buf,0,sizeof(buf));
+		/* Preparing message for server */
+		strcat(buf,"GET ");
+		strcat(buf, argv[4 + i]);
+		strcat(buf, "\r\n");
 
-			printf("waiting for response...\n");
-			result = Readline(s, rbuf, BUFLEN);
-			if (result <= 0) {
-				printf("Read error/Connection closed\n");
-				close(s);
-				exit(1);
-			} else {
-				rbuf[result-1] = '\0';
-				printf("Received response from socket %03u : \n[%s]\n", s, rbuf);
+		len = strlen(buf);
+		if(writen(s, buf, len) != len) {
+			printf("Write error\n");
+			break;
+		}
+
+		printf("waiting for file #%d...\n", i);
+
+		/* Create file where data will be stored */
+		fp = fopen(argv[4 + i], "ab");
+		if(NULL == fp) {
+				printf("Error opening file");
+				return 1;
+		}
+
+		/* Receive data in chunks of 256 bytes */
+		while((bytesReceived = read(s, rbuf, BUFLEN)) > 0) {
+			if(bytesReceived == -1) {
+				err_quit("Error receving file #%d...", i);
 			}
+			printf("Bytes received %d\n", bytesReceived);
+			fwrite(rbuf, 1, bytesReceived, fp);
+		}
+
+		printf("File saved with name: %s\n", argv[4 + i]);
+		fclose(fp);
+
 		printf("===========================================================\n");
 	}
+
 	close(s);
 	exit(0);
-}
-
-/* Gets a line of text from standard input after having printed a prompt string
-   Substitutes end of line with '\0'
-   Empties standard input buffer but stores at most maxline-1 characters in the
-   passed buffer
-*/
-int mygetline(char *line, size_t maxline, char *prompt) {
-	char	ch;
-	size_t 	i;
-
-	printf("%s", prompt);
-	for (i=0; i< maxline-1 && (ch = getchar()) != '\n' && ch != EOF; i++)
-		*line++ = ch;
-	*line = '\0';
-
-	while (ch != '\n' && ch != EOF)
-		ch = getchar();
-	if (ch == EOF)
-		return(EOF);
-	else
-		return(1);
-}
-
-/* Checks if the content of buffer buf equals the "close" or "stop" line */
-int iscloseorstop(char *buf) {
-	return (!strcmp(buf, "close\n") || !strcmp(buf, "stop\n"));
 }
