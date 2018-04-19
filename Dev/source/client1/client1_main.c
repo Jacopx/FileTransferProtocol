@@ -101,7 +101,7 @@ int main (int argc, char *argv[]) {
 		if(bytesReceived == -1) {
 			err_quit("Error receving timestamp #%d...", i);
 		}
-		printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+		printf("Bytes received %d: %lu\n", bytesReceived, (unsigned long) rbuf);
 
 		/* Receive data in chunks of 256 bytes */
 		while((bytesReceived = read(s, rbuf, BUFLEN)) > 0) {
