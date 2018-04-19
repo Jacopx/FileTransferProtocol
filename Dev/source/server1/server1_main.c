@@ -31,7 +31,7 @@ int main (int argc, char *argv[]) {
 
 	/* Argument Check */
 	if (argc != 2) {
-		printf("Usage: %s <port number>\n", prog_name);
+		printf("Usage: %s [port number]\n", prog_name);
 		exit(1);
 	}
 
