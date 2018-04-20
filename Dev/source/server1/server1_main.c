@@ -9,6 +9,11 @@
 #include "../errlib.h"
 #include "../sockwrap.h"
 #include <time.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #define RBUFLEN		128 /* Buffer length */
 
@@ -82,9 +87,9 @@ int main (int argc, char *argv[]) {
 void service(int s) {
   char	buf[RBUFLEN];		/* reception buffer */
   int	 	n;
-	long int sz;
+	int fildes;
+	int f_size, p_size;
 	char temp[10000], *t;
-	FILE *fp = NULL;
 
 	/* Infinite service loop */
 	for (;;) {
@@ -106,7 +111,10 @@ void service(int s) {
 				 t = strtok(NULL, " ");
 				 printf("%s", t);
 
-				 if((fp = fopen("small_file1.txt", "rb")) == NULL) {
+				 fildes = open("small_file1.txt", O_RDWR);
+				 strcpy(buf, "");
+
+				 if(fildes == -1) {
 						 /* Missing file */
 						 printf("File not found! Replying the error to the client...");
 						 strcpy(buf, "-ERR\r\n");
@@ -120,25 +128,28 @@ void service(int s) {
 
 				 } else {
 					 /* Available file */
+					 struct stat st;
+				   fstat(fildes,&st);
 
-					 fseek(fp, 0L, SEEK_END);
-					 sz = ftell(fp);
-					 fseek(fp, 0L, SEEK_SET);
+					 f_size=st.st_size;
+				   p_size=getpagesize();
+				   f_size=f_size + p_size -(f_size%p_size);
 
 					 strcpy(buf, "+OK\r\n");
-					 sprintf(temp, "%ld", sz);
+					 sprintf(temp, "%u", htonl(f_size));
 					 strcat(buf, temp);
-					 sprintf(temp, "%lu", (unsigned long)time(NULL));
+					 sprintf(temp, "%u", htonl(st.st_mtime));
 					 strcat(buf, temp);
 					 send(s, buf, n, 0);
+					 strcpy(buf, "");
 
-					 while( (n = fread(buf, 1, sizeof(buf), fp)) >0 ){
+					 while( (n = read(fildes, buf, f_size)) > 0 ){
 						 send(s, buf, n, 0);
 					 }
 
-					 fclose(fp);
 					 close(s);
 				 }
+				 break;
 
 	    }
 	}
