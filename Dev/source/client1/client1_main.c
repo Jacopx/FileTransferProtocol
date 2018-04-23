@@ -28,6 +28,7 @@ int main (int argc, char *argv[]) {
 	struct sockaddr_in	saddr;		/* server address structure */
 	struct in_addr	sIPaddr; 	/* server IP addr. structure */
 	FILE *fp = NULL; /* File pointer for saving */
+	size_t	len;
 
 	prog_name = argv[0];
 	if( argc < 4) {
@@ -65,7 +66,6 @@ int main (int argc, char *argv[]) {
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
-		size_t	len;
 
 		printf("File #%d...\n", i);
 
@@ -120,6 +120,16 @@ int main (int argc, char *argv[]) {
 		fclose(fp);
 
 		printf("===========================================================\n");
+	}
+
+	/* Preparing closing messages */
+	strcpy(buf, "QUIT\r\n");
+
+	len = strlen(buf);
+	if(writen(s, buf, len) != len) {
+		printf("Closing ended with error\n");
+	} else {
+		printf("Closed message sended");
 	}
 
 	close(s);
