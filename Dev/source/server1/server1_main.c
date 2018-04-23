@@ -86,10 +86,8 @@ int main (int argc, char *argv[]) {
 
 void service(int s) {
   char	buf[RBUFLEN];		/* reception buffer */
-  int	 	n;
-	int fildes;
-	int f_size, p_size;
-	char temp[10000], *t;
+  int	 	n, fildes, f_size;
+	char *t;
 
 	/* Infinite service loop */
 	for (;;) {
@@ -132,14 +130,14 @@ void service(int s) {
 				   fstat(fildes,&st);
 
 					 f_size=st.st_size;
-				   p_size=getpagesize();
-				   f_size=f_size + p_size -(f_size%p_size);
+
+					 memset(buf, 0, strlen(buf));
 
 					 strcpy(buf, "+OK\r\n");
-					 sprintf(temp, "%u", htonl(f_size));
-					 strcat(buf, temp);
-					 sprintf(temp, "%u", htonl(st.st_mtime));
-					 strcat(buf, temp);
+					 printf("htnol: %u\nnormal: %u\n", htonl(f_size), f_size);
+					 //strcat(buf, htonl(f_size));
+					 printf("htnol: %u\nnormal: %u\n", htonl(st.st_mtime), st.st_mtime);
+					 // strcat(buf, htonl(st.st_mtime));
 					 send(s, buf, n, 0);
 					 strcpy(buf, "");
 
