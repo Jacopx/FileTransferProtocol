@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#define RBUFLEN		128 /* Buffer length */
+#define RBUFLEN		1024 /* Buffer length */
 
 /* FUNCTION PROTOTYPES */
 int clientWriten(int s, char *buf, int n);
@@ -85,13 +85,14 @@ int main (int argc, char *argv[]) {
 }
 
 void service(int s) {
-  char	buf[RBUFLEN];		/* reception buffer */
-  int	 	n, fildes, f_size;
+  char	buf[RBUFLEN], rbuf[RBUFLEN];		/* reception buffer */
+  int	 	n, fildes;
+	uint32_t f_size, m_time;
 	char *t;
 
 	/* Infinite service loop */
 	for (;;) {
-	    n=recv(s, buf, RBUFLEN-1, 0);
+	    n=recv(s, rbuf, RBUFLEN-1, 0);
 
 			if (n < 0) {
 
@@ -103,14 +104,14 @@ void service(int s) {
 	    } else {
 
 	       printf("Received data from socket %03d :\n", s);
-	       buf[n]=0;
-				 t = strtok(buf, " ");
+	       rbuf[n]=0;
+				 t = strtok(rbuf, " ");
 	       printf("%s\n", t);
 				 t = strtok(NULL, " ");
 				 printf("%s", t);
 
 				 fildes = open("small_file1.txt", O_RDWR);
-				 strcpy(buf, "");
+				 strcpy(rbuf, "");
 
 				 if(fildes == -1) {
 						 /* Missing file */
@@ -130,19 +131,15 @@ void service(int s) {
 				   fstat(fildes,&st);
 
 					 f_size=st.st_size;
+					 m_time=st.st_mtime;
 
-					 memset(buf, 0, strlen(buf));
+					 send(s, "+OK\r\n", 5, 0);
+					 send(s, htonl(f_size), sizeof(f_size), 0);
+					 send(s, htonl(m_time), sizeof(m_time), 0);
 
-					 strcpy(buf, "+OK\r\n");
-					 printf("htnol: %u\nnormal: %u\n", htonl(f_size), f_size);
-					 //strcat(buf, htonl(f_size));
-					 printf("htnol: %u\nnormal: %u\n", htonl(st.st_mtime), st.st_mtime);
-					 // strcat(buf, htonl(st.st_mtime));
-					 send(s, buf, n, 0);
-					 strcpy(buf, "");
-
-					 while( (n = read(fildes, buf, f_size)) > 0 ){
-						 send(s, buf, n, 0);
+					 while( (n = read(fildes, buf, st.st_size)) > 0 ){
+						 printf("n: %d", n);
+						 write(s, buf, n);
 					 }
 
 					 close(s);
