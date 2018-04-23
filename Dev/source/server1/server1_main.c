@@ -18,8 +18,8 @@
 #define RBUFLEN		1024 /* Buffer length */
 
 /* FUNCTION PROTOTYPES */
-int clientWriten(int s, char *buf, int n);
 void service(int s);
+void sendError(int s);
 
 /* GLOBAL VARIABLES */
 char *prog_name;
@@ -85,8 +85,8 @@ int main (int argc, char *argv[]) {
 }
 
 void service(int s) {
-  char	buf[RBUFLEN], rbuf[RBUFLEN];		/* reception buffer */
-  int	 	n, fildes;
+  char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
+  int	 	n, fildes, nfile = 0, i;
 	uint32_t f_size, m_time;
 	char *t;
 
@@ -102,41 +102,39 @@ void service(int s) {
 	       break;
 
 	    } else {
+				 if(strstr(rbuf, "GET ") == NULL) {
+					 sendError(s);
+				 }
 
 	       printf("Received data from socket %03d :\n", s);
-	       rbuf[n]=0;
-				 t = strtok(rbuf, " ");
-	       printf("%s\n", t);
-				 t = strtok(NULL, " ");
-				 printf("%s", t);
 
-				 fildes = open("small_file1.txt", O_RDWR);
+				 // @TODO Missing name correct
+				 t = &rbuf[4];
+				 t[strlen(t)-1] = '1';
+
+				 printf("t: %s;", t);
+
+				 fildes = open(t, O_RDWR);
 				 strcpy(rbuf, "");
 
 				 if(fildes == -1) {
 						 /* Missing file */
 						 printf("File not found! Replying the error to the client...");
-						 strcpy(buf, "-ERR\r\n");
-
-						 /* Replying to the client with error */
-						 if(writen(s, buf, n) != n) {
-							 printf("Write error while replying\n");
-						 } else {
-							 printf("Reply sent\n");
-						 }
+						 sendError(s);
 
 				 } else {
 					 /* Available file */
 					 struct stat st;
-				   fstat(fildes,&st);
+					 fstat(fildes,&st);
 
-					 f_size=st.st_size;
-					 m_time=st.st_mtime;
+					 f_size=htonl(st.st_size);
+					 m_time=htonl(st.st_mtime);
 
 					 send(s, "+OK\r\n", 5, 0);
-					 send(s, htonl(f_size), 4, 0);
-					 send(s, htonl(m_time), 4, 0);
-					 send(s, "", 8, 0);
+					 memcpy(handShake, &f_size, 4);
+					 send(s, handShake, sizeof(handShake), 0);
+					 memcpy(handShake, &m_time, 4);
+					 send(s, handShake, sizeof(handShake), 0);
 
 					 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
 						 printf("%s", buf);
@@ -150,4 +148,14 @@ void service(int s) {
 	    }
 	}
 
+}
+
+void sendError(int s) {
+	int n;
+	/* Replying to the client with error */
+	if(writen(s, "-ERR\r\n", n) != n) {
+		printf("Write error while replying\n");
+	} else {
+		printf("Reply sent\n");
+	}
 }
