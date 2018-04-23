@@ -8,7 +8,7 @@
 #include     "../errlib.h"
 #include     "../sockwrap.h"
 
-#define BUFLEN	256 /* BUFFER LENGTH */
+#define BUFLEN	1024 /* BUFFER LENGTH */
 
 /* FUNCTION PROTOTYPES */
 
@@ -89,12 +89,18 @@ int main (int argc, char *argv[]) {
 				return 1;
 		}
 
+		memset(rbuf,0,strlen(rbuf));
+
 		/* Receive RESPONSE info */
 		bytesReceived = read(s, rbuf, 5);
 		if(bytesReceived == -1) {
 			err_quit("Error receving reply #%d...", i);
 		}
 		printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+		if(strstr(rbuf, "-ERR") != NULL) {
+			printf("Server reply with -ERR\n\tConnection will be closed...\n");
+			break;
+		}
 
 		/* Receive TIMESTAMP info */
 		bytesReceived = read(s, rbuf, 8);
