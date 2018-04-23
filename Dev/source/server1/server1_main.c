@@ -134,11 +134,12 @@ void service(int s) {
 					 m_time=st.st_mtime;
 
 					 send(s, "+OK\r\n", 5, 0);
-					 send(s, htonl(f_size), sizeof(f_size), 0);
-					 send(s, htonl(m_time), sizeof(m_time), 0);
+					 send(s, htonl(f_size), 4, 0);
+					 send(s, htonl(m_time), 4, 0);
+					 send(s, "", 8, 0);
 
-					 while( (n = read(fildes, buf, st.st_size)) > 0 ){
-						 printf("n: %d", n);
+					 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
+						 printf("%s", buf);
 						 write(s, buf, n);
 					 }
 
