@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include "../errlib.h"
 #include "../sockwrap.h"
+#include <unistd.h>
 #include <time.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -90,6 +91,7 @@ void service(int s) {
 
 	/* Infinite service loop */
 	for (;;) {
+			memset(rbuf, '\0', sizeof(rbuf));
 	    n=recv(s, rbuf, RBUFLEN-1, 0);
 
 			if (n < 0) {
@@ -114,8 +116,8 @@ void service(int s) {
 	       // printf("Received data from socket %03d :\n", s);
 
 				 // Removing CR LF from the ending file
-				 file = calloc((strlen(&rbuf[4]) - 3), sizeof(char));
-				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 3);
+				 file = calloc((strlen(&rbuf[4]) - 2), sizeof(char));
+				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 2);
 
 				 printf("FILE: %s ###\n", file);
 
@@ -146,10 +148,10 @@ void service(int s) {
 						 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
 							 write(s, buf, n);
 						 }
+						 free(file);
 				 }
 	    }
 	}
-	free(file);
 	printf("Closing service routine!\n");
 }
 
