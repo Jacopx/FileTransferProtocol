@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 #define RBUFLEN		1024 /* Buffer length */
 
@@ -88,7 +89,8 @@ void service(int s) {
   char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
   int	 	n, fildes, nfile = 0, i;
 	uint32_t f_size, m_time;
-	char *t;
+	char *file;
+
 
 	/* Infinite service loop */
 	for (;;) {
@@ -108,13 +110,11 @@ void service(int s) {
 
 	       printf("Received data from socket %03d :\n", s);
 
-				 // @TODO Missing name correct
-				 t = &rbuf[4];
-				 t[strlen(t)-1] = '1';
+				 // Removing CR LF from the ending file
+				 file = malloc((strlen(&rbuf[4]) - 3) * sizeof(char));
+				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 3);
 
-				 printf("t: %s;", t);
-
-				 fildes = open(t, O_RDWR);
+				 fildes = open(file, O_RDWR);
 				 strcpy(rbuf, "");
 
 				 if(fildes == -1) {
