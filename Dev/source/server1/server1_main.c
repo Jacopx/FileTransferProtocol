@@ -104,16 +104,20 @@ void service(int s) {
 					 if(strstr(rbuf, "QUIT") != NULL) {
 						 printf("Closed received!\n");
 						 close(s);
+						 break;
 					 } else {
 						 sendError(s);
+						 break;
 					 }
 				 }
 
 	       // printf("Received data from socket %03d :\n", s);
 
 				 // Removing CR LF from the ending file
-				 file = malloc((strlen(&rbuf[4]) - 3) * sizeof(char));
+				 file = calloc((strlen(&rbuf[4]) - 3), sizeof(char));
 				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 3);
+
+				 printf("FILE: %s ###\n", file);
 
 				 fildes = open(file, O_RDWR);
 				 strcpy(rbuf, "");
@@ -145,6 +149,8 @@ void service(int s) {
 				 }
 	    }
 	}
+	free(file);
+	printf("Closing service routine!\n");
 }
 
 void sendError(int s) {
