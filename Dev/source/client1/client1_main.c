@@ -111,9 +111,8 @@ int main (int argc, char *argv[]) {
 		printf("Start reading...\n");
 		memset(rbuf, '\0', sizeof(rbuf));
 
-		// printf("Bytes received %d: %s\n", readn(s, &rbuf, BUFLEN - 1), rbuf);
-
-		while((bytesReceived = readn(s, &rbuf, BUFLEN)) > 0) {
+		totalBytes = 0;
+		while((bytesReceived = readn(s, &rbuf, (ntohl(size) - totalBytes < BUFLEN)?ntohl(size) - totalBytes:BUFLEN) ) > 0) {
 			if(bytesReceived == -1) {
 				err_quit("Error receving file #%d...", i);
 			}
@@ -121,7 +120,8 @@ int main (int argc, char *argv[]) {
 			printf("Bytes received %d\n", bytesReceived);
 			totalBytes += bytesReceived;
 			fwrite(rbuf, 1, bytesReceived, fp);
-			if(totalBytes == ntohl(size)) {
+
+			if(bytesReceived < BUFLEN ) {
 				break;
 			}
 		}
