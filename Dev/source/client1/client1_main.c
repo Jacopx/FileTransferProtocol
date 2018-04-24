@@ -12,7 +12,6 @@
 
 /* FUNCTION PROTOTYPES */
 
-
 /* GLOBAL VARIABLES */
 char *prog_name;
 
@@ -21,10 +20,11 @@ int main (int argc, char *argv[]) {
 	char	   rbuf[BUFLEN];	/* reception buffer */
 
 	uint16_t	   tport_n, tport_h;	/* server port number (net/host ord) */
+	uint32_t size = 0, timestamp = 0; /* Size and Time  variable */
 
 	int				s = 0;
 	int				result = 0;
-	int				bytesReceived = 0;
+	int				bytesReceived = 0, totalBytes = 0;
 	struct sockaddr_in	saddr;		/* server address structure */
 	struct in_addr	sIPaddr; 	/* server IP addr. structure */
 	FILE *fp = NULL; /* File pointer for saving */
@@ -89,7 +89,7 @@ int main (int argc, char *argv[]) {
 				return 1;
 		}
 
-		memset(rbuf,0,strlen(rbuf));
+		memset(rbuf,0,sizeof(rbuf));
 
 		/* Receive RESPONSE info */
 		bytesReceived = read(s, rbuf, 5);
@@ -102,22 +102,26 @@ int main (int argc, char *argv[]) {
 			break;
 		}
 
-		/* Receive TIMESTAMP info */
-		bytesReceived = read(s, rbuf, 8);
-		if(bytesReceived == -1) {
-			err_quit("Error receving timestamp #%d...", i);
-		}
-		printf("Bytes received %d: %lu\n", bytesReceived, (unsigned long) rbuf);
+		readn(s, &size, 4);
+		readn(s, &timestamp, 4);
 
-		/* Receive data in chunks of BUFLEN bytes */
-		while((bytesReceived = read(s, rbuf, BUFLEN)) > 0) {
+		printf("size: %u\n", ntohl(size));
+		printf("tsta: %u\n", ntohl(timestamp));
+
+		printf("Start reading...\n");
+		memset(rbuf, '\0', sizeof(rbuf));
+
+		// printf("Bytes received %d: %s\n", readn(s, &rbuf, BUFLEN - 1), rbuf);
+
+		while((bytesReceived = readn(s, &rbuf, BUFLEN)) > 0) {
 			if(bytesReceived == -1) {
 				err_quit("Error receving file #%d...", i);
 			}
 			// printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+			printf("Bytes received %d\n", bytesReceived);
+			totalBytes += bytesReceived;
 			fwrite(rbuf, 1, bytesReceived, fp);
-
-			if(BUFLEN - bytesReceived > 0) {
+			if(totalBytes == ntohl(size)) {
 				break;
 			}
 		}
