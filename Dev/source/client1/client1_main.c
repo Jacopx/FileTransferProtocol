@@ -70,8 +70,6 @@ int main (int argc, char *argv[]) {
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
 
-		printf("Received file %s\n", argv[3 + i]);
-
 		/* Preparing message for server */
 		strcpy(buf, "GET ");
 		strcat(buf, argv[3 + i]);
@@ -105,9 +103,12 @@ int main (int argc, char *argv[]) {
 			break;
 		}
 
+		/* Get SIZE and MODIFICATION TIMESTAMP */
 		readn(s, &size, 4);
 		readn(s, &timestamp, 4);
 
+		/* Print basic information */
+		printf("Received file %s\n", argv[3 + i]);
 		printf("Received file size %u\n", ntohl(size));
 		printf("Received file timestamp %u\n", ntohl(timestamp));
 
