@@ -24,11 +24,9 @@ int main (int argc, char *argv[]) {
 	char	   rbuf[BUFLEN];	/* reception buffer */
 
 	uint16_t	   tport_n, tport_h;	/* server port number (net/host ord) */
-	uint32_t size = 0, timestamp = 0; /* Size and Time  variable */
+	uint32_t size = 0, timestamp = 0; /* Size and Time variable */
 
-	int				s = 0;
-	int				result = 0;
-	int				bytesReceived = 0, totalBytes = 0;
+	int	s = 0, result = 0, bytesReceived = 0, totalBytes = 0;
 	struct sockaddr_in	saddr;		/* server address structure */
 	struct in_addr	sIPaddr; 	/* server IP addr. structure */
 	FILE *fp = NULL; /* File pointer for saving */
@@ -84,13 +82,13 @@ int main (int argc, char *argv[]) {
 		trace( printf("waiting for file #%d...\n", i) );
 
 		/* Create file where data will be stored */
-		fp = fopen(argv[3 + i], "w");
+		fp = Fopen(argv[3 + i], "w");
 		if(fp == NULL) {
 				trace( err_msg("(%s) -- Error opening file", prog_name) );
 				return 1;
 		}
 
-		memset(rbuf,0,sizeof(rbuf));
+		memset(rbuf,'\0',sizeof(rbuf));
 
 		/* Receive RESPONSE info */
 		bytesReceived = read(s, rbuf, 5);
