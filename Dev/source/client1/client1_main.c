@@ -109,12 +109,12 @@ int main (int argc, char *argv[]) {
 		}
 		printf("Bytes received %d: %lu\n", bytesReceived, (unsigned long) rbuf);
 
-		/* Receive data in chunks of 256 bytes */
+		/* Receive data in chunks of BUFLEN bytes */
 		while((bytesReceived = read(s, rbuf, BUFLEN)) > 0) {
 			if(bytesReceived == -1) {
 				err_quit("Error receving file #%d...", i);
 			}
-			printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+			// printf("Bytes received %d: %s\n", bytesReceived, rbuf);
 			fwrite(rbuf, 1, bytesReceived, fp);
 
 			if(BUFLEN - bytesReceived > 0) {
