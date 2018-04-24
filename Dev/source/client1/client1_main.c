@@ -10,7 +10,11 @@
 
 #define BUFLEN	1024 /* BUFFER LENGTH */
 
-/* FUNCTION PROTOTYPES */
+#ifdef TRACE
+#define trace(x) x
+#else
+#define trace(x)
+#endif
 
 /* GLOBAL VARIABLES */
 char *prog_name;
@@ -36,22 +40,21 @@ int main (int argc, char *argv[]) {
 		exit(2);
 	}
 
-
 	/* Save IP and port # in struct */
 	result = inet_aton(argv[1], &sIPaddr);
 
 	if (!result)
-		err_quit("Invalid address");
+		err_sys("Invalid address");
 
 	if (sscanf(argv[2], "%" SCNu16, &tport_h)!=1)
-		err_quit("Invalid port number");
+		err_sys("Invalid port number");
 
 	tport_n = htons(tport_h);
 
 	/* create the socket */
-	printf("Creating socket\n");
+	trace( printf("Creating socket\n") );
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	printf("done. Socket fd number: %d\n",s);
+	trace( printf("done. Socket fd number: %d\n",s) );
 
 	/* prepare address structure */
 	bzero(&saddr, sizeof(saddr));
@@ -62,12 +65,12 @@ int main (int argc, char *argv[]) {
 	/* connect */
 	showAddr("Connecting to target address", &saddr);
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
-	printf("done.\nStarting cycling...");
+	trace( printf("done.\nStarting cycling...") );
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
 
-		printf("File #%d...\n", i);
+		printf("Received file %s\n", argv[3 + i]);
 
 		/* Preparing message for server */
 		strcpy(buf, "GET ");
@@ -76,16 +79,16 @@ int main (int argc, char *argv[]) {
 
 		len = strlen(buf);
 		if(writen(s, buf, len) != len) {
-			printf("Write error\n");
+			trace( err_msg("(%s) -- Write error\n", prog_name) );
 			break;
 		}
 
-		printf("waiting for file #%d...\n", i);
+		trace( printf("waiting for file #%d...\n", i) );
 
 		/* Create file where data will be stored */
 		fp = fopen(argv[3 + i], "w");
 		if(fp == NULL) {
-				printf("Error opening file");
+				trace( err_msg("(%s) -- Error opening file", prog_name) );
 				return 1;
 		}
 
@@ -94,30 +97,29 @@ int main (int argc, char *argv[]) {
 		/* Receive RESPONSE info */
 		bytesReceived = read(s, rbuf, 5);
 		if(bytesReceived == -1) {
-			err_quit("Error receving reply #%d...", i);
+			err_sys("(%s) -- Error receving reply #%d...", prog_name, i);
 		}
-		printf("Bytes received %d: %s\n", bytesReceived, rbuf);
+		trace( printf("Bytes received %d: %s\n", bytesReceived, rbuf) );
 		if(strstr(rbuf, "-ERR") != NULL) {
-			printf("Server reply with -ERR\n\tConnection will be closed...\n");
+			trace( err_msg("(%s) -- Server reply with -ERR\n\tConnection will be closed...\n", prog_name) );
 			break;
 		}
 
 		readn(s, &size, 4);
 		readn(s, &timestamp, 4);
 
-		printf("size: %u\n", ntohl(size));
-		printf("tsta: %u\n", ntohl(timestamp));
+		printf("Received file size %u\n", ntohl(size));
+		printf("Received file timestamp %u\n", ntohl(timestamp));
 
-		printf("Start reading...\n");
+		trace( printf("Start reading...\n") );
 		memset(rbuf, '\0', sizeof(rbuf));
 
 		totalBytes = 0;
 		while((bytesReceived = readn(s, &rbuf, (ntohl(size) - totalBytes < BUFLEN)?ntohl(size) - totalBytes:BUFLEN) ) > 0) {
 			if(bytesReceived == -1) {
-				err_quit("Error receving file #%d...", i);
+				err_sys("Error receving file #%d...", i);
 			}
-			// printf("Bytes received %d: %s\n", bytesReceived, rbuf);
-			printf("Bytes received %d\n", bytesReceived);
+			trace( printf("Bytes received %d\n", totalBytes) );
 			totalBytes += bytesReceived;
 			fwrite(rbuf, 1, bytesReceived, fp);
 
@@ -126,10 +128,10 @@ int main (int argc, char *argv[]) {
 			}
 		}
 
-		printf("File saved with name: %s\n", argv[3 + i]);
+		trace( printf("File saved with name: %s\n", argv[3 + i]) );
 		fclose(fp);
 
-		printf("===========================================================\n");
+		trace( printf("===========================================================\n") );
 	}
 
 	/* Preparing closing messages */
@@ -137,9 +139,9 @@ int main (int argc, char *argv[]) {
 
 	len = strlen(buf);
 	if(writen(s, buf, len) != len) {
-		printf("Closing ended with error\n");
+		trace( err_msg("(%s) -- Closing ended with error\n", prog_name) );
 	} else {
-		printf("Closed message sended");
+		trace( printf("Closed message sended\n") );
 	}
 
 	close(s);
