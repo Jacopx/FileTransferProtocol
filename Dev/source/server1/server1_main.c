@@ -9,12 +9,8 @@
 #include "../errlib.h"
 #include "../sockwrap.h"
 #include <time.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <ctype.h>
 
 #define RBUFLEN		1024 /* Buffer length */
 
@@ -50,9 +46,9 @@ int main (int argc, char *argv[]) {
 	lport_n = htons(lport_h);
 
 	/* create the socket */
-	printf("creating socket...\n");
+	// printf("creating socket...\n");
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	printf("done, socket number %u\n",s);
+	// printf("done, socket number %u\n",s);
 
 	/* bind the socket to any local IP address */
 	bzero(&saddr, sizeof(saddr));
@@ -61,12 +57,12 @@ int main (int argc, char *argv[]) {
 	saddr.sin_addr.s_addr = INADDR_ANY;
 	showAddr("Binding to address", &saddr);
 	Bind(s, (struct sockaddr *) &saddr, sizeof(saddr));
-	printf("done.\n");
+	// printf("done.\n");
 
 	/* listen */
-	printf ("Listening at socket %d with backlog = %d \n",s,bklog);
+	// printf ("Listening at socket %d with backlog = %d \n",s,bklog);
 	Listen(s, bklog);
-	printf("done.\n");
+	// printf("done.\n");
 
 	conn_request_skt = s;
 
@@ -76,7 +72,7 @@ int main (int argc, char *argv[]) {
 		addrlen = sizeof(struct sockaddr_in);
 		s = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
 		showAddr("Accepted connection from", &caddr);
-		printf("new socket: %u\n",s);
+		// printf("new socket: %u\n",s);
 
 		/* serve the client on socket s */
 		service(s);
@@ -105,10 +101,15 @@ void service(int s) {
 
 	    } else {
 				 if(strstr(rbuf, "GET ") == NULL) {
-					 sendError(s);
+					 if(strstr(rbuf, "QUIT") != NULL) {
+						 printf("Closed received!\n");
+						 close(s);
+					 } else {
+						 sendError(s);
+					 }
 				 }
 
-	       printf("Received data from socket %03d :\n", s);
+	       // printf("Received data from socket %03d :\n", s);
 
 				 // Removing CR LF from the ending file
 				 file = malloc((strlen(&rbuf[4]) - 3) * sizeof(char));
@@ -123,31 +124,27 @@ void service(int s) {
 						 sendError(s);
 
 				 } else {
-					 /* Available file */
-					 struct stat st;
-					 fstat(fildes,&st);
+						 /* Available file */
+						 struct stat st;
+						 fstat(fildes,&st);
 
-					 f_size=htonl(st.st_size);
-					 m_time=htonl(st.st_mtime);
+						 f_size=htonl(st.st_size);
+						 m_time=htonl(st.st_mtime);
 
-					 send(s, "+OK\r\n", 5, 0);
-					 memcpy(handShake, &f_size, 4);
-					 send(s, handShake, sizeof(handShake), 0);
-					 memcpy(handShake, &m_time, 4);
-					 send(s, handShake, sizeof(handShake), 0);
+						 // Sending to client the handshake
+						 send(s, "+OK\r\n", 5, 0);
+						 memcpy(handShake, &f_size, 4);
+						 send(s, handShake, sizeof(handShake), 0);
+						 memcpy(handShake, &m_time, 4);
+						 send(s, handShake, sizeof(handShake), 0);
 
-					 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
-						 printf("%s", buf);
-						 write(s, buf, n);
-					 }
-
-					 close(s);
+						 // Sending file to client
+						 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
+							 write(s, buf, n);
+						 }
 				 }
-				 break;
-
 	    }
 	}
-
 }
 
 void sendError(int s) {
