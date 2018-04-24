@@ -84,7 +84,7 @@ int main (int argc, char *argv[]) {
 
 void service(int s) {
   char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
-  int	 	n, fildes, nfile = 0, i;
+  int	 	n, fildes;
 	uint32_t f_size, m_time;
 	char *file;
 
