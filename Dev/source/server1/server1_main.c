@@ -15,6 +15,12 @@
 
 #define RBUFLEN		1024 /* Buffer length */
 
+#ifdef TRACE
+#define trace(x) x
+#else
+#define trace(x)
+#endif
+
 /* FUNCTION PROTOTYPES */
 void service(int s);
 void sendError(int s);
@@ -35,7 +41,7 @@ int main (int argc, char *argv[]) {
 
 	/* Argument Check */
 	if (argc != 2) {
-		printf("Usage: %s [port number]\n", prog_name);
+		err_sys("Usage: %s [port number]\n", prog_name);
 		exit(1);
 	}
 
@@ -47,9 +53,9 @@ int main (int argc, char *argv[]) {
 	lport_n = htons(lport_h);
 
 	/* create the socket */
-	// printf("creating socket...\n");
+	trace( printf("creating socket...\n") );
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	// printf("done, socket number %u\n",s);
+	trace( printf("done, socket number %u\n",s) );
 
 	/* bind the socket to any local IP address */
 	bzero(&saddr, sizeof(saddr));
@@ -58,12 +64,12 @@ int main (int argc, char *argv[]) {
 	saddr.sin_addr.s_addr = INADDR_ANY;
 	showAddr("Binding to address", &saddr);
 	Bind(s, (struct sockaddr *) &saddr, sizeof(saddr));
-	// printf("done.\n");
+	trace( printf("done.\n") );
 
 	/* listen */
-	// printf ("Listening at socket %d with backlog = %d \n",s,bklog);
+	trace( printf ("Listening at socket %d with backlog = %d \n",s,bklog) );
 	Listen(s, bklog);
-	// printf("done.\n");
+	trace( printf("done.\n") );
 
 	conn_request_skt = s;
 
@@ -73,7 +79,7 @@ int main (int argc, char *argv[]) {
 		addrlen = sizeof(struct sockaddr_in);
 		s = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
 		showAddr("Accepted connection from", &caddr);
-		// printf("new socket: %u\n",s);
+		trace( printf("new socket: %u\n",s) );
 
 		/* serve the client on socket s */
 		service(s);
@@ -88,7 +94,6 @@ void service(int s) {
 	uint32_t f_size, m_time;
 	char *file;
 
-
 	/* Infinite service loop */
 	for (;;) {
 			memset(rbuf, '\0', sizeof(rbuf));
@@ -96,15 +101,15 @@ void service(int s) {
 
 			if (n < 0) {
 
-	       printf("Read error\n");
+	       trace( err_msg("(%s) -- Read error\n", prog_name) );
 	       close(s);
-	       printf("Socket %d closed\n", s);
+	       trace( printf("Socket %d closed\n", s) );
 	       break;
 
 	    } else {
 				 if(strstr(rbuf, "GET ") == NULL) {
 					 if(strstr(rbuf, "QUIT") != NULL) {
-						 printf("Closed received!\n");
+						 trace( printf("Closed received!\n") );
 						 close(s);
 						 break;
 					 } else {
@@ -113,20 +118,20 @@ void service(int s) {
 					 }
 				 }
 
-	       // printf("Received data from socket %03d :\n", s);
+	       trace( printf("Received data from socket %03d :\n", s) );
 
-				 // Removing CR LF from the ending file
+				 /* Removing CR LF from the ending file */
 				 file = calloc((strlen(&rbuf[4]) - 2), sizeof(char));
 				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 2);
 
-				 printf("FILE: %s ###\n", file);
+				 trace( printf("FILE: %s ###\n", file) );
 
 				 fildes = open(file, O_RDWR);
 				 strcpy(rbuf, "");
 
 				 if(fildes == -1) {
 						 /* Missing file */
-						 printf("File not found! Replying the error to the client...");
+						 trace( err_msg("(%s) -- File not found! Replying the error to the client...", prog_name) );
 						 sendError(s);
 
 				 } else {
@@ -137,14 +142,14 @@ void service(int s) {
 						 f_size=htonl(st.st_size);
 						 m_time=htonl(st.st_mtime);
 
-						 // Sending to client the handshake
+						 /* Sending to client the handshake */
 						 send(s, "+OK\r\n", 5, 0);
 						 memcpy(handShake, &f_size, 4);
 						 send(s, handShake, sizeof(handShake), 0);
 						 memcpy(handShake, &m_time, 4);
 						 send(s, handShake, sizeof(handShake), 0);
 
-						 // Sending file to client
+						 /* Sending file to client */
 						 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
 							 write(s, buf, n);
 						 }
@@ -152,15 +157,13 @@ void service(int s) {
 				 }
 	    }
 	}
-	printf("Closing service routine!\n");
+	trace( printf("Closing service routine!\n") );
 }
 
 void sendError(int s) {
 	int n;
 	/* Replying to the client with error */
 	if(writen(s, "-ERR\r\n", n) != n) {
-		printf("Write error while replying\n");
-	} else {
-		printf("Reply sent\n");
+		trace( err_msg("(%s) -- Write error while replying\n", prog_name) );
 	}
 }
