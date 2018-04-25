@@ -23,7 +23,6 @@
 
 /* FUNCTION PROTOTYPES */
 void service(int s);
-void sendError(int s);
 
 /* GLOBAL VARIABLES */
 char *prog_name;
@@ -97,11 +96,11 @@ void service(int s) {
 	/* Infinite service loop */
 	for (;;) {
 			memset(rbuf, '\0', sizeof(rbuf));
-	    n=recv(s, rbuf, RBUFLEN-1, 0);
+	    n=Recv(s, rbuf, RBUFLEN, 0);
 
 			if (n < 0) {
 
-	       trace( err_msg("(%s) -- Read error\n", prog_name) );
+	       err_msg("(%s) -- Recv() error\n", prog_name);
 	       close(s);
 	       trace( printf("Socket %d closed\n", s) );
 	       break;
@@ -113,7 +112,7 @@ void service(int s) {
 						 close(s);
 						 break;
 					 } else {
-						 sendError(s);
+						 err_msg("(%s) -- Message format not correct\n", prog_name);
 						 break;
 					 }
 				 }
@@ -131,8 +130,7 @@ void service(int s) {
 
 				 if(fildes == -1) {
 						 /* Missing file */
-						 trace( err_msg("(%s) -- File not found! Replying the error to the client...", prog_name) );
-						 sendError(s);
+						 err_msg("(%s) -- File not found\n", prog_name);
 
 				 } else {
 						 /* Available file */
@@ -143,27 +141,19 @@ void service(int s) {
 						 m_time=htonl(st.st_mtime);
 
 						 /* Sending to client the handshake */
-						 send(s, "+OK\r\n", 5, 0);
+						 Send(s, "+OK\r\n", 5, 0);
 						 memcpy(handShake, &f_size, 4);
-						 send(s, handShake, sizeof(handShake), 0);
+						 Send(s, handShake, sizeof(handShake), 0);
 						 memcpy(handShake, &m_time, 4);
-						 send(s, handShake, sizeof(handShake), 0);
+						 Send(s, handShake, sizeof(handShake), 0);
 
 						 /* Sending file to client */
-						 while ((n = read(fildes, buf, sizeof(buf))) != 0) {
-							 write(s, buf, n);
+						 while ((n = Read(fildes, buf, sizeof(buf))) != 0) {
+							 Write(s, buf, n);
 						 }
 						 free(file);
 				 }
 	    }
 	}
 	trace( printf("Closing service routine!\n") );
-}
-
-void sendError(int s) {
-	int n;
-	/* Replying to the client with error */
-	if(writen(s, "-ERR\r\n", n) != n) {
-		trace( err_msg("(%s) -- Write error while replying\n", prog_name) );
-	}
 }
