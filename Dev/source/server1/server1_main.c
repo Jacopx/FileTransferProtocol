@@ -51,7 +51,7 @@ int main (int argc, char *argv[]) {
 
 	lport_n = htons(lport_h);
 
-	/* create the socket */
+	/* create the TCP socket */
 	trace( printf("creating socket...\n") );
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	trace( printf("done, socket number %u\n",s) );
@@ -123,17 +123,17 @@ void service(int s) {
 				 file = calloc((strlen(&rbuf[4]) - 2), sizeof(char));
 				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 2);
 
-				 trace( printf("FILE: %s ###\n", file) );
-
+				 /* Opening file READ-WRITE mode*/
 				 fildes = open(file, O_RDWR);
-				 strcpy(rbuf, "");
+
+				 trace( printf("FILE: %s ###\n", file) );
 
 				 if(fildes == -1) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found\n", prog_name);
 
 				 } else {
-						 /* Available file */
+						 /* File Available */
 						 struct stat st;
 						 fstat(fildes,&st);
 
@@ -155,5 +155,6 @@ void service(int s) {
 				 }
 	    }
 	}
+	/* Exiting from service routine */
 	trace( printf("Closing service routine!\n") );
 }
