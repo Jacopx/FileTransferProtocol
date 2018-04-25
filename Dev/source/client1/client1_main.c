@@ -61,7 +61,7 @@ int main (int argc, char *argv[]) {
 	saddr.sin_addr   = sIPaddr;
 
 	/* connect */
-	showAddr("Connecting to target address", &saddr);
+	trace( showAddr("Connecting to target address", &saddr) );
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
 	trace( printf("done.\nStarting cycling...") );
 
@@ -74,17 +74,14 @@ int main (int argc, char *argv[]) {
 		strcat(buf, "\r\n");
 
 		len = strlen(buf);
-		if(writen(s, buf, len) != len) {
-			trace( err_msg("(%s) -- Write error\n", prog_name) );
-			break;
-		}
+		Writen(s, buf, len);
 
 		trace( printf("waiting for file #%d...\n", i) );
 
 		/* Create file where data will be stored */
 		fp = Fopen(argv[3 + i], "w");
 		if(fp == NULL) {
-				trace( err_msg("(%s) -- Error opening file", prog_name) );
+				err_msg("(%s) -- Error opening file", prog_name);
 				return 1;
 		}
 
@@ -97,13 +94,13 @@ int main (int argc, char *argv[]) {
 		}
 		trace( printf("Bytes received %d: %s\n", bytesReceived, rbuf) );
 		if(strstr(rbuf, "-ERR") != NULL) {
-			trace( err_msg("(%s) -- Server reply with -ERR\n\tConnection will be closed...\n", prog_name) );
+			err_msg("(%s) -- Server reply with -ERR\n", prog_name);
 			break;
 		}
 
 		/* Get SIZE and MODIFICATION TIMESTAMP */
-		readn(s, &size, 4);
-		readn(s, &timestamp, 4);
+		Readn(s, &size, 4);
+		Readn(s, &timestamp, 4);
 
 		/* Print basic information */
 		printf("Received file %s\n", argv[3 + i]);
@@ -114,11 +111,11 @@ int main (int argc, char *argv[]) {
 		memset(rbuf, '\0', sizeof(rbuf));
 
 		totalBytes = 0;
-		while((bytesReceived = readn(s, &rbuf, (ntohl(size) - totalBytes < BUFLEN)?ntohl(size) - totalBytes:BUFLEN) ) > 0) {
+		while((bytesReceived = Readn(s, &rbuf, (ntohl(size) - totalBytes < BUFLEN)?ntohl(size) - totalBytes:BUFLEN) ) > 0) {
 			if(bytesReceived == -1) {
 				err_sys("Error receving file #%d...", i);
 			}
-			trace( printf("Bytes received %d\n", totalBytes) );
+			// trace( printf("Bytes received %d\n", totalBytes) );
 			totalBytes += bytesReceived;
 			fwrite(rbuf, 1, bytesReceived, fp);
 
@@ -137,11 +134,7 @@ int main (int argc, char *argv[]) {
 	strcpy(buf, "QUIT\r\n");
 
 	len = strlen(buf);
-	if(writen(s, buf, len) != len) {
-		trace( err_msg("(%s) -- Closing ended with error\n", prog_name) );
-	} else {
-		trace( printf("Closed message sended\n") );
-	}
+	Writen(s, buf, len);
 
 	close(s);
 	exit(0);
