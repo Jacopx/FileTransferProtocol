@@ -62,7 +62,7 @@ int main (int argc, char *argv[]) {
 	saddr.sin_family      = AF_INET;
 	saddr.sin_port        = lport_n;
 	saddr.sin_addr.s_addr = INADDR_ANY;
-	showAddr("Binding to address", &saddr);
+	trace( showAddr("Binding to address", &saddr) );
 	Bind(s, (struct sockaddr *) &saddr, sizeof(saddr));
 	trace( printf("done.\n") );
 
@@ -78,7 +78,7 @@ int main (int argc, char *argv[]) {
 		/* accept next connection */
 		addrlen = sizeof(struct sockaddr_in);
 		s = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
-		showAddr("Accepted connection from", &caddr);
+		trace( showAddr("Accepted connection from", &caddr) );
 		trace( printf("new socket: %u\n",s) );
 
 		/* serve the client on socket s */
