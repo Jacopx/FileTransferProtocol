@@ -1,12 +1,12 @@
 /*
- 
+
  module: sockwrap.c
- 
+
  purpose: library of wrapper and utility socket functions
           wrapper functions include error management
- 
+
  reference: Stevens, Unix network programming (3ed)
- 
+
  */
 
 
@@ -64,7 +64,7 @@ again:
 		if (INTERRUPTED_BY_SIGNAL ||
 			errno == EPROTO || errno == ECONNABORTED ||
 			errno == EMFILE || errno == ENFILE ||
-			errno == ENOBUFS || errno == ENOMEM			
+			errno == ENOBUFS || errno == ENOMEM
 		    )
 			goto again;
 		else
@@ -175,7 +175,7 @@ void Print_getaddrinfo_list(struct addrinfo *list_head) {
 	struct addrinfo *p = list_head;
 	char info[MAXSTR];
 	char tmpstr[MAXSTR];
-	err_msg ("(%s) listing all results of getaddrinfo", prog_name);	
+	err_msg ("(%s) listing all results of getaddrinfo", prog_name);
 	while (p != NULL) {
 		info[0]='\0';
 
@@ -222,7 +222,7 @@ void Print_getaddrinfo_list(struct addrinfo *list_head) {
 			strcat(info, p->ai_canonname);
 			strcat(info, " ");
 		}
-			
+
 		err_msg ("(%s) %s", prog_name, info);
 		p = p->ai_next;
 	}
@@ -733,11 +733,9 @@ void
 showAddr(char *str, struct sockaddr_in *a)
 {
     char *p;
-    
+
     p = inet_ntoa(a->sin_addr);
     printf("%s %s!",str,p);
     printf("%" SCNu16, ntohs(a->sin_port));
     printf("\n");
 }
-
-

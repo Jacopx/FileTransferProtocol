@@ -84,12 +84,14 @@ int main (int argc, char *argv[]) {
 		service(s);
 	}
 
+	printf("Routine server closed gracefully\n");
+
 	return 0;
 }
 
 void service(int s) {
   char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
-  int	 	n, fildes;
+  int	 	n, fildes, rst = 0;
 	uint32_t f_size, m_time;
 	char *file;
 
@@ -147,11 +149,23 @@ void service(int s) {
 						 memcpy(handShake, &m_time, 4);
 						 Send(s, handShake, sizeof(handShake), 0);
 
+						 rst = 0;
+
 						 /* Sending file to client */
 						 while ((n = readn(fildes, buf, sizeof(buf))) != 0) {
-							 sendn(s, buf, n, 0);
+							 /* Communitaction error will stop the sending but not the server */
+							 if(sendn(s, buf, n, 0) == -1) {
+								 err_msg("(%s) -- send() failed: broken pipe\n", prog_name);
+								 rst = 1;
+								 break;
+							 }
 						 }
+
 						 free(file);
+						 /* In case of broken pipe close service */
+						 if(rst == 1) {
+							 break;
+						 }
 				 }
 	    }
 	}
