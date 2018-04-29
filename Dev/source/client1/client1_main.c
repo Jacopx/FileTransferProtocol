@@ -96,11 +96,6 @@ int main (int argc, char *argv[]) {
 		Readn(s, &size, 4);
 		Readn(s, &timestamp, 4);
 
-		/* Print basic information */
-		printf("Received file %s\n", argv[3 + i]);
-		printf("Received file size %u\n", ntohl(size));
-		printf("Received file timestamp %u\n", ntohl(timestamp));
-
 		trace( printf("Start reading...\n") );
 		memset(rbuf, '\0', sizeof(rbuf));
 
@@ -116,8 +111,11 @@ int main (int argc, char *argv[]) {
 			}
 		}
 
-		trace( printf("File saved with name: %s\n", argv[3 + i]) );
-		fclose(fp);
+		Fclose(fp);
+		/* Print basic information */
+		printf("Received file %s\n", argv[3 + i]);
+		printf("Received file size %u\n", ntohl(size));
+		printf("Received file timestamp %u\n", ntohl(timestamp));
 
 		trace( printf("===========================================================\n") );
 	}

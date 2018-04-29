@@ -149,7 +149,7 @@ void service(int s) {
 
 						 /* Sending file to client */
 						 while ((n = readn(fildes, buf, sizeof(buf))) != 0) {
-							 writen(s, buf, n);
+							 sendn(s, buf, n, 0);
 						 }
 						 free(file);
 				 }
