@@ -80,18 +80,12 @@ int main (int argc, char *argv[]) {
 
 		/* Create file where data will be stored */
 		fp = Fopen(argv[3 + i], "w");
-		if(fp == NULL) {
-				err_msg("(%s) -- Error opening file", prog_name);
-				return 1;
-		}
 
 		memset(rbuf,'\0',sizeof(rbuf));
 
 		/* Receive RESPONSE info */
-		bytesReceived = read(s, rbuf, 5);
-		if(bytesReceived == -1) {
-			err_sys("(%s) -- Error receving reply #%d...", prog_name, i);
-		}
+		bytesReceived = Readn(s, rbuf, 5);
+
 		trace( printf("Bytes received %d: %s\n", bytesReceived, rbuf) );
 		if(strstr(rbuf, "-ERR") != NULL) {
 			err_msg("(%s) -- Server reply with -ERR\n", prog_name);
@@ -112,9 +106,7 @@ int main (int argc, char *argv[]) {
 
 		totalBytes = 0;
 		while((bytesReceived = Readn(s, &rbuf, (ntohl(size) - totalBytes < BUFLEN)?ntohl(size) - totalBytes:BUFLEN) ) > 0) {
-			if(bytesReceived == -1) {
-				err_sys("Error receving file #%d...", i);
-			}
+
 			// trace( printf("Bytes received %d\n", totalBytes) );
 			totalBytes += bytesReceived;
 			fwrite(rbuf, 1, bytesReceived, fp);
