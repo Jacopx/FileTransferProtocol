@@ -40,7 +40,7 @@ int main (int argc, char *argv[]) {
 
 	/* Argument Check */
 	if (argc != 2) {
-		err_sys("Usage: %s [port number]\n", prog_name);
+		err_sys("Usage: %s [port number]", prog_name);
 		exit(1);
 	}
 
@@ -102,7 +102,7 @@ void service(int s) {
 
 			if (n < 0) {
 
-	       err_msg("(%s) -- Recv() error\n", prog_name);
+	       err_msg("(%s) -- Recv() error", prog_name);
 	       close(s);
 	       trace( printf("Socket %d closed\n", s) );
 	       break;
@@ -114,7 +114,7 @@ void service(int s) {
 						 close(s);
 						 break;
 					 } else {
-						 err_msg("(%s) -- Message format not correct\n", prog_name);
+						 err_msg("(%s) -- Message format not correct", prog_name);
 						 break;
 					 }
 				 }
@@ -132,7 +132,7 @@ void service(int s) {
 
 				 if(fildes == -1) {
 						 /* Missing file */
-						 err_msg("(%s) -- File not found\n", prog_name);
+						 err_msg("(%s) -- File not found", prog_name);
 
 				 } else {
 						 /* File Available */
@@ -155,7 +155,7 @@ void service(int s) {
 						 while ((n = readn(fildes, buf, sizeof(buf))) != 0) {
 							 /* Communitaction error will stop the sending but not the server */
 							 if(sendn(s, buf, n, 0) == -1) {
-								 err_msg("(%s) -- send() failed: broken pipe\n", prog_name);
+								 err_msg("(%s) -- send() failed: broken pipe", prog_name);
 								 rst = 1;
 								 break;
 							 }
