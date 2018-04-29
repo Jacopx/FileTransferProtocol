@@ -148,8 +148,8 @@ void service(int s) {
 						 Send(s, handShake, sizeof(handShake), 0);
 
 						 /* Sending file to client */
-						 while ((n = Read(fildes, buf, sizeof(buf))) != 0) {
-							 Write(s, buf, n);
+						 while ((n = readn(fildes, buf, sizeof(buf))) != 0) {
+							 writen(s, buf, n);
 						 }
 						 free(file);
 				 }
