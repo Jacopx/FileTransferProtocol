@@ -32,7 +32,8 @@ int main (int argc, char *argv[]) {
 	int					conn_request_skt;	/* passive socket */
 	uint16_t 		lport_n, lport_h;	/* port used by server (net/host ord.) */
 	int					bklog = 2;		/* listen backlog */
-	int	 				s;			/* connected socket */
+	int	 				s, new;			/* connected socket */
+	pid_t pid;
 	socklen_t 	addrlen;
 	struct sockaddr_in 	saddr, caddr;	/* server and client addresses */
 
@@ -76,15 +77,25 @@ int main (int argc, char *argv[]) {
 	for (;;) {
 		/* accept next connection */
 		addrlen = sizeof(struct sockaddr_in);
-		s = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
+		new = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
 		trace( showAddr("Accepted connection from", &caddr) );
-		trace( printf("new socket: %u\n",s) );
+		trace( printf("new socket: %u\n",new) );
 
-		/* serve the client on socket s */
-		service(s);
+		/* Concurrent implementation - PROCESS ON DEMAND */
+		if ((pid=fork()) < 0)
+			err_msg("(%s) error - fork() failed", prog_name);
+
+		if(pid > 0) {
+			/* Parent Process */
+			close(new);			/* Master close new socket */
+		} else {
+			/* Child Process */
+			close(s);				/* Slave close passive socket */
+			service(new); 	/* serve the client on socket NEW */
+			trace( printf("Terminated socket: %u\n", new) );
+			exit(0);
+		}
 	}
-
-	printf("Routine server closed gracefully\n");
 
 	return 0;
 }
