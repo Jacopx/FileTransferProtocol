@@ -9,6 +9,7 @@
 #include     "../sockwrap.h"
 
 #define BUFLEN	1024 /* BUFFER LENGTH */
+#define TIMEOUT 5 	 /* TIMEOUT [s] */
 
 #ifdef TRACE
 #define trace(x) x
@@ -31,6 +32,7 @@ int main (int argc, char *argv[]) {
 	struct in_addr	sIPaddr; 	/* server IP addr. structure */
 	FILE *fp = NULL; /* File pointer for saving */
 	size_t	len;
+	struct timeval	tval;
 
 	prog_name = argv[0];
 	if( argc < 4) {
@@ -64,6 +66,11 @@ int main (int argc, char *argv[]) {
 	trace( showAddr("Connecting to target address", &saddr) );
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
 	trace( printf("done.\nStarting cycling...") );
+
+	/* Setting timeout in socket option */
+	tval.tv_sec = TIMEOUT;
+	tval.tv_usec = 0;
+	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
