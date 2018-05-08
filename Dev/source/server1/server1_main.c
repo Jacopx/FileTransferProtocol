@@ -36,7 +36,6 @@ int main (int argc, char *argv[]) {
 	int	 				s;			/* connected socket */
 	socklen_t 	addrlen;
 	struct sockaddr_in 	saddr, caddr;	/* server and client addresses */
-	struct timeval	tval;
 
 	prog_name = argv[0];
 
@@ -101,6 +100,7 @@ void service(int s) {
   int	 	n, fildes, rst = 0;
 	uint32_t f_size, m_time;
 	char *file;
+	struct timeval	tval;
 
 	/* Setting timeout in socket option */
 	tval.tv_sec = TIMEOUT;
