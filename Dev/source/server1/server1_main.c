@@ -87,6 +87,11 @@ int main (int argc, char *argv[]) {
 		trace( showAddr("Accepted connection from", &caddr) );
 		trace( printf("new socket: %u\n",s) );
 
+		/* Setting timeout in socket option */
+		tval.tv_sec = TIMEOUT;
+		tval.tv_usec = 0;
+		setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
+
 		/* serve the client on socket s */
 		service(s);
 	}
