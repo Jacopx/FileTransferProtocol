@@ -13,7 +13,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#define RBUFLEN		1024 /* Buffer length */
+#define RBUFLEN	1024 /* Buffer length */
+#define TIMEOUT 5 	 /* TIMEOUT [s] */
 
 #ifdef TRACE
 #define trace(x) x
@@ -35,6 +36,7 @@ int main (int argc, char *argv[]) {
 	int	 				s;			/* connected socket */
 	socklen_t 	addrlen;
 	struct sockaddr_in 	saddr, caddr;	/* server and client addresses */
+	struct timeval	tval;
 
 	prog_name = argv[0];
 
@@ -55,6 +57,11 @@ int main (int argc, char *argv[]) {
 	trace( printf("creating socket...\n") );
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	trace( printf("done, socket number %u\n",s) );
+
+	/* Setting timeout in socket option */
+	tval.tv_sec = TIMEOUT;
+	tval.tv_usec = 0;
+	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
 
 	/* bind the socket to any local IP address */
 	bzero(&saddr, sizeof(saddr));
