@@ -144,6 +144,7 @@ void service(int s) {
 				 if(fildes == -1) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found", prog_name);
+						 Send(s, "-ERR\r\n", 6, 0);
 
 				 } else {
 						 /* File Available */
