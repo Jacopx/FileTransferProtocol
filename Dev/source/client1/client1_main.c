@@ -71,6 +71,7 @@ int main (int argc, char *argv[]) {
 	tval.tv_sec = TIMEOUT;
 	tval.tv_usec = 0;
 	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
+	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tval, sizeof(tval));
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
