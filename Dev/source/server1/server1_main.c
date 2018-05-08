@@ -57,11 +57,6 @@ int main (int argc, char *argv[]) {
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	trace( printf("done, socket number %u\n",s) );
 
-	/* Setting timeout in socket option */
-	tval.tv_sec = TIMEOUT;
-	tval.tv_usec = 0;
-	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
-
 	/* bind the socket to any local IP address */
 	bzero(&saddr, sizeof(saddr));
 	saddr.sin_family      = AF_INET;
