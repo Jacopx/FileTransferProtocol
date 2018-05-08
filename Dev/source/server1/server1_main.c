@@ -135,6 +135,7 @@ void service(int s) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found", prog_name);
 						 Send(s, "-ERR\r\n", 6, 0);
+						 break;
 
 				 } else {
 						 /* File Available */
