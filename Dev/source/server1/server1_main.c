@@ -124,7 +124,7 @@ void service(int s) {
 
 				 /* Removing CR LF from the ending file */
 				 nameLen = strlen(&rbuf[4]) - 2;
-				 file = malloc(nameLenv * sizeof(char));
+				 file = malloc(nameLen * sizeof(char));
 				 strncpy(file, &rbuf[4], nameLen);
 
 				 /* Opening file READ-WRITE mode*/
