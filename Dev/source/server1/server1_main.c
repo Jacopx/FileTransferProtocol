@@ -128,7 +128,7 @@ void service(int s) {
 				 strncpy(file, &rbuf[4], nameLen);
 
 				 /* Opening file READ-WRITE mode*/
-				 fildes = open(file, O_RDWR);
+				 fildes = open(file, O_RDONLY);
 
 				 trace( printf("FILE: %s ###\n", file) );
 
