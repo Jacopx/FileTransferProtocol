@@ -95,8 +95,12 @@ int main (int argc, char *argv[]) {
 		bytesReceived = Readn(s, rbuf, 5);
 
 		trace( printf("Bytes received %d: %s\n", bytesReceived, rbuf) );
+
+		/* Check server reply */
 		if(strstr(rbuf, "-ERR") != NULL) {
 			err_msg("(%s) -- Server reply with -ERR\n", prog_name);
+			Fclose(fp);
+			remove(argv[3 + i]); /* Close FilePointer and Delete file */
 			break;
 		}
 
