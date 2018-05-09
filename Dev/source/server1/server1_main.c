@@ -135,6 +135,8 @@ void service(int s) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found", prog_name);
 						 Send(s, "-ERR\r\n", 6, 0);
+						 close(fildes);
+						 free(file);
 						 break;
 
 				 } else {
@@ -164,12 +166,13 @@ void service(int s) {
 							 }
 						 }
 
-						 free(file);
 						 /* In case of broken pipe close service */
 						 if(rst == 1) {
 							 break;
 						 }
 				 }
+				 free(file);
+				 close(fildes);
 	    }
 	}
 	/* Exiting from service routine */
