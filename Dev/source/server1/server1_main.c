@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
 
 void service(int s) {
   char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
-  int	 	n, fildes, rst = 0;
+  int	 	n, fildes, rst = 0, nameLen;
 	uint32_t f_size, m_time;
 	char *file;
 
@@ -123,8 +123,9 @@ void service(int s) {
 	       trace( printf("Received data from socket %03d :\n", s) );
 
 				 /* Removing CR LF from the ending file */
-				 file = calloc((strlen(&rbuf[4]) - 2), sizeof(char));
-				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 2);
+				 nameLen = strlen(&rbuf[4]) - 2;
+				 file = malloc(nameLenv * sizeof(char));
+				 strncpy(file, &rbuf[4], nameLen);
 
 				 /* Opening file READ-WRITE mode*/
 				 fildes = open(file, O_RDWR);

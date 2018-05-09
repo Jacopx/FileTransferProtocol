@@ -99,8 +99,12 @@ int main (int argc, char *argv[]) {
 		/* Check server reply */
 		if(strstr(rbuf, "-ERR") != NULL) {
 			err_msg("(%s) -- Server reply with -ERR\n", prog_name);
+			/* Close FilePointer and Delete file */
 			Fclose(fp);
-			remove(argv[3 + i]); /* Close FilePointer and Delete file */
+			if (remove(argv[3 + i]) != 0) {
+  			/* Handle error */
+				err_msg("(%s) -- File deleting not allowed\n", prog_name);
+			}
 			break;
 		}
 
