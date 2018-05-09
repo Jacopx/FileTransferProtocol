@@ -39,6 +39,9 @@ int main (int argc, char *argv[]) {
 
 	prog_name = argv[0];
 
+	/* Setting handler NOT WAIT CHILD, avoid child to become zombies */
+	signal(SIGCHLD, SIG_IGN);
+
 	/* Argument Check */
 	if (argc != 2) {
 		err_sys("Usage: %s [port number]", prog_name);
@@ -102,7 +105,7 @@ int main (int argc, char *argv[]) {
 
 void service(int s) {
   char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
-  int	 	n, fildes, rst = 0;
+  int	 	n, fildes, rst = 0, nameLen;
 	uint32_t f_size, m_time;
 	char *file;
 
@@ -133,11 +136,12 @@ void service(int s) {
 	       trace( printf("Received data from socket %03d :\n", s) );
 
 				 /* Removing CR LF from the ending file */
-				 file = calloc((strlen(&rbuf[4]) - 2), sizeof(char));
-				 strncpy(file, &rbuf[4], strlen(&rbuf[4]) - 2);
+				 nameLen = strlen(&rbuf[4]) - 2;
+				 file = malloc(nameLen * sizeof(char));
+				 strncpy(file, &rbuf[4], nameLen);
 
 				 /* Opening file READ-WRITE mode*/
-				 fildes = open(file, O_RDWR);
+				 fildes = open(file, O_RDONLY);
 
 				 trace( printf("FILE: %s ###\n", file) );
 
@@ -145,6 +149,8 @@ void service(int s) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found", prog_name);
 						 Send(s, "-ERR\r\n", 6, 0);
+						 close(fildes);
+						 free(file);
 						 break;
 
 				 } else {
@@ -174,12 +180,13 @@ void service(int s) {
 							 }
 						 }
 
-						 free(file);
 						 /* In case of broken pipe close service */
 						 if(rst == 1) {
 							 break;
 						 }
 				 }
+				 free(file);
+				 close(fildes);
 	    }
 	}
 	/* Exiting from service routine */
