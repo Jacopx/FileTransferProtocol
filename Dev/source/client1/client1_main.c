@@ -2,11 +2,12 @@
  *        Distributed Programming - Lab2 [Client] == Jacopo Nasi           *
  *      Repo avail: https://github.com/Jacopx/FileTransferProtocol         *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-#include     <stdlib.h>
-#include     <string.h>
-#include     <inttypes.h>
-#include     "../errlib.h"
-#include     "../sockwrap.h"
+#include	<stdlib.h>
+#include	<string.h>
+#include	<inttypes.h>
+#include	<libgen.h>
+#include	"../errlib.h"
+#include	"../sockwrap.h"
 
 #define BUFLEN	1024 /* BUFFER LENGTH */
 #define TIMEOUT 5 	 /* TIMEOUT [s] */
@@ -87,7 +88,7 @@ int main (int argc, char *argv[]) {
 		trace( printf("waiting for file #%d...\n", i) );
 
 		/* Create file where data will be stored */
-		fp = Fopen(argv[3 + i], "w");
+		fp = Fopen(basename(argv[3 + i]), "w");
 
 		memset(rbuf,'\0',sizeof(rbuf));
 
@@ -129,7 +130,7 @@ int main (int argc, char *argv[]) {
 
 		Fclose(fp);
 		/* Print basic information */
-		printf("Received file %s\n", argv[3 + i]);
+		printf("Received file %s\n", basename(argv[3 + i]));
 		printf("Received file size %u\n", ntohl(size));
 		printf("Received file timestamp %u\n", ntohl(timestamp));
 
