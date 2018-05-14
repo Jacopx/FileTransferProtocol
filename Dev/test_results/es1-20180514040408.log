@@ -1,0 +1,183 @@
+Start of tests on /opt/DP_2011/es1/s255320/es1-20180514040408.zip
+Tests on /opt/DP_2011/es1/s255320/es1-20180514040408.zip terminated.
+----- Tests recap ------
+ - test.sh test 0.1: true
+ - test.sh test 0.2: true
+ - test.sh test 1.1: true
+ - test.sh test 1.2: true
+ - test.sh test 2.1: true
+ - test.sh test 3.1: true
+ - test2.sh test 0.1: true
+ - test2.sh test 0.2: true
+ - test2.sh test 1.1: true
+ - test2.sh test 1.2: true
+ - test2.sh test 2.1: true
+ - test2.sh test 3.1: true
+ 
+---------------------- TEST LOG ----------------------
+ 
+Working directory: /tmp/tmp.feTbLbHfpG
+Copying .zip file to the working directory...
+Done.
+Unzipping .zip file...
+Archive:  es1-20180514040408.zip
+  inflating: source/client1/client1_main.c  
+  inflating: source/server1/server1_main.c  
+  inflating: source/server2/server2_main.c  
+  inflating: source/errlib.c         
+  inflating: source/errlib.h         
+  inflating: source/sockwrap.c       
+  inflating: source/sockwrap.h       
+Done.
+Creating the environment for running the tests...
+Done.
+Running first test script (lab 2.3 test.sh)...
+Cleaning up...			Ok!
+checking all necessary files are present in tools folder...	Ok!
+Test 0.1 (compiling server1_sol)...	Ok!
+Test 0.2 (compiling client1_sol)...	Ok!
+
+*** PART 1: TESTS ON THE STUDENT'S SERVER WITH A REFERENCE CLIENT *************
+Running server server1_sol ...
+
+
+	 server1_sol [PORT 33442] Ok!
+Running client ./client1_ref (server 127.0.0.1, port 33442, next arguments: small_file1.txt) ...
+Execution of client ./client1_ref completed.
+	Test client run terminated successfully
+	[++TEST 1.1 PASSED++] 
+
+
+[TEST 1.2] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 1.2 PASSED++] Ok!
+*** END OF TESTING PART 1 *************
+
+
+*** PART 2: TESTS ON THE STUDENT'S CLIENT WITH THE STUDENT'S SERVER *************
+Running server server1_sol ...
+
+
+	 server1_sol [PORT 54218] Ok!
+Running client ./client1_sol (server 127.0.0.1, port 54218, next arguments: small_file1.txt) ...
+Starting watchdog for client1_sol ...
+killing watchdog
+
+Execution of client ./client1_sol completed.
+	Client run terminated with exit code 0
+
+
+[TEST 2.1] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 2.1 PASSED++] Ok!
+*** END OF TESTING PART 2 *************
+
+
+*** PART 3: TESTS ON THE STUDENT'S CLIENT WITH A REFERENCE SERVER *************
+Running server server1_ref ...
+
+
+	 server1_ref [PORT 60454] Ok!
+Running client ./client1_sol (server 127.0.0.1, port 60454, next arguments: small_file1.txt) ...
+Starting watchdog for client1_sol ...
+killing watchdog
+
+Execution of client ./client1_sol completed.
+	Client run terminated with exit code 0
+
+
+[TEST 3.1] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 3.1 PASSED++] Ok!
+*** END OF TESTING PART 3 *************
+
+ ----- Tests recap ------
+ - test.sh test 0.1: true
+ - test.sh test 0.2: true
+
+ - test.sh test 1.1: true
+ - test.sh test 1.2: true
+
+ - test.sh test 2.1: true
+
+ - test.sh test 3.1: true
+ ------------------------
+
++++++ OK: You may have met the minimum requirements for submission!!! +++++
+
+Cleaning up...			Ok!
+Running second test script (lab 3.1 test2.sh)...
+Cleaning up...			Ok!
+checking all necessary files are present in tools folder...	Ok!
+Test 0.1 (compiling server2_sol)...	Ok!
+Test 0.2 (compiling client1_sol)...	Ok!
+
+*** PART 1: TESTS ON THE STUDENT'S SERVER WITH A REFERENCE CLIENT *************
+Running server server2_sol ...
+
+
+	 server2_sol [PORT 56280] Ok!
+Running client ./client1_ref (server 127.0.0.1, port 56280, next arguments: small_file1.txt) ...
+Execution of client ./client1_ref completed.
+	Test client run terminated successfully
+	[++TEST 1.1 PASSED++] 
+
+
+[TEST 1.2] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 1.2 PASSED++] Ok!
+*** END OF TESTING PART 1 *************
+
+
+*** PART 2: TESTS ON THE STUDENT'S CLIENT WITH THE STUDENT'S SERVER *************
+Running server server2_sol ...
+
+
+	 server2_sol [PORT 46807] Ok!
+Running client ./client1_sol (server 127.0.0.1, port 46807, next arguments: small_file1.txt) ...
+Starting watchdog for client1_sol ...
+killing watchdog
+
+Execution of client ./client1_sol completed.
+	Client run terminated with exit code 0
+
+
+[TEST 2.1] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 2.1 PASSED++] Ok!
+*** END OF TESTING PART 2 *************
+
+
+*** PART 3: TESTS ON THE STUDENT'S CLIENT WITH A REFERENCE SERVER *************
+Running server server1_ref ...
+
+
+	 server1_ref [PORT 44857] Ok!
+Running client ./client1_sol (server 127.0.0.1, port 44857, next arguments: small_file1.txt) ...
+Starting watchdog for client1_sol ...
+killing watchdog
+
+Execution of client ./client1_sol completed.
+	Client run terminated with exit code 0
+
+
+[TEST 3.1] Checking the transferred file exists in client directory and equals the original ones ...
+
+	[++TEST 3.1 PASSED++] Ok!
+*** END OF TESTING PART 3 *************
+
+ ----- Tests recap ------
+ - test2.sh test 0.1: true
+ - test2.sh test 0.2: true
+
+ - test2.sh test 1.1: true
+ - test2.sh test 1.2: true
+
+ - test2.sh test 2.1: true
+
+ - test2.sh test 3.1: true
+ ------------------------
+
++++++ OK: You may have met the minimum requirements for submission!!! +++++
+
+Cleaning up...			Ok!
