@@ -127,9 +127,9 @@ void service(int s) {
 	       trace( printf("Received data from socket %03d :\n", s) );
 
 				 /* Removing CR LF from the ending file */
-				 nameLen = strlen(&rbuf[4]) - 2;
-				 file = malloc(nameLen * sizeof(char));
-				 strncpy(file, &rbuf[4], nameLen);
+				 nameLen = strlen(&rbuf[4]);
+				 file = calloc(nameLen + 1, sizeof(char));
+				 strncpy(file, &rbuf[4], nameLen - 2);
 
 				 /* Opening file READ-WRITE mode*/
 				 fildes = open(file, O_RDONLY);
