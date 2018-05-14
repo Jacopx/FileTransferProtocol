@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 
 #define RBUFLEN		1024 /* Buffer length */
+#define OK "+OK\r\n" /* Deflaut OK message */
+#define ERR "-ERR\r\n" /* Deflaut ERROR message */
 
 #ifdef TRACE
 #define trace(x) x
@@ -129,6 +131,8 @@ void service(int s) {
 						 break;
 					 } else {
 						 err_msg("(%s) -- Message format not correct", prog_name);
+						 Send(s, ERR, 6, 0);
+						 close(s);
 						 break;
 					 }
 				 }
@@ -148,7 +152,7 @@ void service(int s) {
 				 if(fildes == -1) {
 						 /* Missing file */
 						 err_msg("(%s) -- File not found", prog_name);
-						 Send(s, "-ERR\r\n", 6, 0);
+						 Send(s, ERR, 6, 0);
 						 close(fildes);
 						 free(file);
 						 break;
@@ -161,8 +165,8 @@ void service(int s) {
 						 f_size=htonl(st.st_size);
 						 m_time=htonl(st.st_mtime);
 
-						 /* Sending to client the handshake */
-						 Send(s, "+OK\r\n", 5, 0);
+						 /* Sending to client the handshake OK */
+						 Send(s, OK, 5, 0);
 						 memcpy(handShake, &f_size, 4);
 						 Send(s, handShake, sizeof(handShake), 0);
 						 memcpy(handShake, &m_time, 4);

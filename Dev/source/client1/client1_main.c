@@ -11,6 +11,8 @@
 
 #define BUFLEN	1024 /* BUFFER LENGTH */
 #define TIMEOUT 5 	 /* TIMEOUT [s] */
+#define GET "GET "
+#define QUIT "QUIT\r\n"
 
 #ifdef TRACE
 #define trace(x) x
@@ -137,11 +139,9 @@ int main (int argc, char *argv[]) {
 		trace( printf("===========================================================\n") );
 	}
 
-	/* Preparing closing messages */
+	/* Closing messages */
 	strcpy(buf, "QUIT\r\n");
-
-	len = strlen(buf);
-	Writen(s, buf, len);
+	Writen(s, QUIT, sizeof(QUIT));
 
 	close(s);
 	exit(0);
