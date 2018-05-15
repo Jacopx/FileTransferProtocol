@@ -37,7 +37,7 @@ In case of error (e.g. illegal command, non-existing file) the server always rep
 ```
 (6 characters) and then it closes the connection with the client.
 
-### Development Notes
+### Development Notes (server1/client1)
 When implementing your client and server, use the directory structure included in the zip file provided with this text. After having unzipped the archive, you will find a directory named lab2.3, which includes a source folder with a nested server1 subfolder where you will write the server and a client1 subfolder where you will write the client. Skeleton empty files (one for the client and one for the server) are already present. Simply fill these files with your programs without moving them. You can use libraries of functions (e.g. the ones provided by Stevens). The C sources of such libraries must be copied into the source folder (do not put them into the client1 or server1 subdirectories, as such directories must contain only your own code!). Also, remember that if you want to include some of these files in your sources you have to specify the ”..” path in the include directive).
 
 Your code will be considered valid if it can be compiled with the following commands, issued from the source folder:
@@ -46,6 +46,9 @@ gcc -std=gnu99 -o server server1/*.c *.c -Iserver1 -lpthread -lm
 gcc -std=gnu99 -o client client1/*.c *.c -Iclient1 -lpthread -lm
 ```
 The lab2.3 folder also contains a subfolder named tools, which includes some testing tools, among which you can find the executable files of a reference client and server that behave according to the specified protocol and that you can use for interoperability tests. Try to connect your client with the reference server, and the reference client with your server for testing interoperability (note that the executable files are provided for both 32bit and 64bit architectures. Files with the _32 suffix are compiled for and run on 32bit Linux systems. Files without that suffix are for 64bit systems. Labinf computers are 64bit systems). If fixes are needed in your client or server, make sure that your client and server can communicate correctly with each other after the modifications. Finally you should have a client and a server that can communicate with each other and that can interoperate with the reference client and server.
+
+### Multi-process Version (server2)
+Develop a concurrent TCP server (listening to the port specified as the first parameter of the command line, as a decimal integer) that, after having established a TCP connection with a client, accepts file transfer requests from the client and sends the requested files back to the client, following the same protocol used in the iterative version. The server must create processes on demand (a new process for each new TCP connection).
 
 ### Testing
 Try the transfer of a large binary file (100MB) and check that the received copy of the file is identical to the original one (using diff) and that the implementation you developed is efficient in transferring the file in terms of transfer time.
