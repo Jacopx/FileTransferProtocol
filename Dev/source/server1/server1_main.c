@@ -12,9 +12,9 @@
 #include <time.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #define RBUFLEN	1024 /* Buffer length */
-#define TIMEOUT 5 	 /* TIMEOUT [s] */
 #define OK "+OK\r\n" /* Deflaut OK message */
 #define ERR "-ERR\r\n" /* Deflaut ERROR message */
 
@@ -32,12 +32,10 @@ char *prog_name;
 
 int main (int argc, char *argv[]) {
 
-	int					conn_request_skt;	/* passive socket */
-	uint16_t 		lport_n, lport_h;	/* port used by server (net/host ord.) */
-	int					bklog = 2;		/* listen backlog */
-	int	 				s;			/* connected socket */
-	socklen_t 	addrlen;
-	struct sockaddr_in 	saddr, caddr;	/* server and client addresses */
+	int conn_request_skt, bklog = 1, s;	/* passive socket & listen backlog & socket */
+	uint16_t lport_n, lport_h;	/* port used by server (net/host ord.) */
+	socklen_t addrlen;
+	struct sockaddr_in saddr, caddr;	/* server and client addresses */
 
 	prog_name = argv[0];
 
@@ -93,15 +91,14 @@ int main (int argc, char *argv[]) {
 }
 
 void service(int s) {
-  char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
+  char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4], *file;;		/* Buffers and pointer */
   int	 	n, fildes, rst = 0, nameLen;
 	uint32_t f_size, m_time;
-	char *file;
 
 	/* Infinite service loop */
 	for (;;) {
 			memset(rbuf, '\0', sizeof(rbuf));
-	    n=Recv(s, rbuf, RBUFLEN, 0);
+	    n = Recv(s, rbuf, RBUFLEN, 0);
 
 			if (n < 0) {
 
@@ -127,9 +124,9 @@ void service(int s) {
 	       trace( printf("Received data from socket %03d :\n", s) );
 
 				 /* Removing CR LF from the ending file */
-				 nameLen = strlen(&rbuf[4]);
+				 nameLen = strlen(basename(&rbuf[4]));
 				 file = calloc(nameLen + 1, sizeof(char));
-				 strncpy(file, &rbuf[4], nameLen - 2);
+				 strncpy(file, basename(&rbuf[4]), nameLen - 2);
 
 				 /* Opening file READ-WRITE mode*/
 				 fildes = open(file, O_RDONLY);
@@ -149,8 +146,8 @@ void service(int s) {
 						 struct stat st;
 						 fstat(fildes,&st);
 
-						 f_size=htonl(st.st_size);
-						 m_time=htonl(st.st_mtime);
+						 f_size = htonl(st.st_size);
+						 m_time = htonl(st.st_mtime);
 
 						 /* Sending to client the handshake OK */
 						 Send(s, OK, 5, 0);
@@ -176,6 +173,7 @@ void service(int s) {
 							 break;
 						 }
 				 }
+
 				 free(file);
 				 close(fildes);
 	    }

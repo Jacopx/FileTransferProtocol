@@ -13,6 +13,7 @@
 #define TIMEOUT 5 	 /* TIMEOUT [s] */
 #define GET "GET "
 #define QUIT "QUIT\r\n"
+#define CRLF "\r\n"
 
 #ifdef TRACE
 #define trace(x) x
@@ -68,7 +69,7 @@ int main (int argc, char *argv[]) {
 	/* connect */
 	trace( showAddr("Connecting to target address", &saddr) );
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
-	trace( printf("done.\nStarting cycling...") );
+	trace( printf("done.\nStarting cycling...\n") );
 
 	/* Setting timeout in socket option */
 	tval.tv_sec = TIMEOUT;
@@ -80,14 +81,14 @@ int main (int argc, char *argv[]) {
 	for(int i = 0; i < (argc - 3); ++i) {
 
 		/* Preparing message for server */
-		strcpy(buf, "GET ");
+		strcpy(buf, GET);
 		strcat(buf, argv[3 + i]);
-		strcat(buf, "\r\n");
+		strcat(buf, CRLF);
 
 		len = strlen(buf);
 		Writen(s, buf, len);
 
-		trace( printf("waiting for file #%d...\n", i) );
+		trace( printf("Waiting for file #%d...\n", i) );
 
 		/* Create file where data will be stored */
 		fp = Fopen(basename(argv[3 + i]), "w");
@@ -104,7 +105,7 @@ int main (int argc, char *argv[]) {
 			err_msg("(%s) -- Server reply with -ERR\n", prog_name);
 			/* Close FilePointer and Delete file */
 			Fclose(fp);
-			if (remove(argv[3 + i]) != 0) {
+			if (remove(basename(argv[3 + i])) != 0) {
   			/* Handle error */
 				err_msg("(%s) -- File deleting not allowed\n", prog_name);
 			}
@@ -128,6 +129,21 @@ int main (int argc, char *argv[]) {
 			if(bytesReceived < BUFLEN ) {
 				break;
 			}
+		}
+
+		/* If the file is NOT COMPLETE prompt everything */
+		if(totalBytes < ntohl(size)) {
+			trace( printf("File not complete...\n") );
+			trace( printf("Missing: %d bytes\n", ntohl(size) - totalBytes) );
+			err_msg("(%s) -- File received not complete.\n", prog_name);
+
+			/* Close FilePointer and Delete file */
+			Fclose(fp);
+			if (remove(basename(argv[3 + i])) != 0) {
+				/* Handle error */
+				err_msg("(%s) -- File deleting not allowed\n", prog_name);
+			}
+			exit(2);
 		}
 
 		Fclose(fp);

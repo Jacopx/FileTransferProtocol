@@ -12,6 +12,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #define RBUFLEN		1024 /* Buffer length */
 #define OK "+OK\r\n" /* Deflaut OK message */
@@ -31,13 +32,11 @@ char *prog_name;
 
 int main (int argc, char *argv[]) {
 
-	int					conn_request_skt;	/* passive socket */
-	uint16_t 		lport_n, lport_h;	/* port used by server (net/host ord.) */
-	int					bklog = 2;		/* listen backlog */
-	int	 				s, new;			/* connected socket */
+	int conn_request_skt, bklog = 128, s, new;	/* passive socket & listen backlog & socket */
+	uint16_t lport_n, lport_h;	/* port used by server (net/host ord.) */
+	socklen_t addrlen;
+	struct sockaddr_in saddr, caddr;	/* server and client addresses */
 	pid_t pid;
-	socklen_t 	addrlen;
-	struct sockaddr_in 	saddr, caddr;	/* server and client addresses */
 
 	prog_name = argv[0];
 
@@ -87,7 +86,7 @@ int main (int argc, char *argv[]) {
 		trace( printf("new socket: %u\n",new) );
 
 		/* Concurrent implementation - PROCESS ON DEMAND */
-		if ((pid=fork()) < 0)
+		if ((pid = fork()) < 0)
 			err_msg("(%s) error - fork() failed", prog_name);
 
 		if(pid > 0) {
@@ -106,15 +105,14 @@ int main (int argc, char *argv[]) {
 }
 
 void service(int s) {
-  char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4];		/* reception buffer */
+  char	buf[RBUFLEN], rbuf[RBUFLEN], handShake[4], *file;		/* Buffers & file pointer */
   int	 	n, fildes, rst = 0, nameLen;
 	uint32_t f_size, m_time;
-	char *file;
 
 	/* Infinite service loop */
 	for (;;) {
 			memset(rbuf, '\0', sizeof(rbuf));
-	    n=Recv(s, rbuf, RBUFLEN, 0);
+	    n = Recv(s, rbuf, RBUFLEN, 0);
 
 			if (n < 0) {
 
@@ -140,9 +138,9 @@ void service(int s) {
 	       trace( printf("Received data from socket %03d :\n", s) );
 
 				 /* Removing CR LF from the ending file */
-				 nameLen = strlen(&rbuf[4]) - 2;
-				 file = malloc(nameLen * sizeof(char));
-				 strncpy(file, &rbuf[4], nameLen);
+				 nameLen = strlen(basename(&rbuf[4]));
+				 file = calloc(nameLen + 1, sizeof(char));
+				 strncpy(file, basename(&rbuf[4]), nameLen - 2);
 
 				 /* Opening file READ-WRITE mode*/
 				 fildes = open(file, O_RDONLY);
@@ -189,6 +187,7 @@ void service(int s) {
 							 break;
 						 }
 				 }
+
 				 free(file);
 				 close(fildes);
 	    }
