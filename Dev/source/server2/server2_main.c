@@ -13,8 +13,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <libgen.h>
+#include <errno.h>
 
-#define RBUFLEN		1024 /* Buffer length */
+#define RBUFLEN		2048 /* Buffer length */
 #define OK "+OK\r\n" /* Deflaut OK message */
 #define ERR "-ERR\r\n" /* Deflaut ERROR message */
 
@@ -79,25 +80,38 @@ int main (int argc, char *argv[]) {
 
 	/* main server loop */
 	for (;;) {
-		/* accept next connection */
+		/* accept() managing */
 		addrlen = sizeof(struct sockaddr_in);
-		new = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
-		trace( showAddr("Accepted connection from", &caddr) );
-		trace( printf("new socket: %u\n",new) );
-
-		/* Concurrent implementation - PROCESS ON DEMAND */
-		if ((pid = fork()) < 0)
-			err_msg("(%s) error - fork() failed", prog_name);
-
-		if(pid > 0) {
-			/* Parent Process */
-			close(new);			/* Master close new socket */
+	again:
+		if ( (new = accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen)) < 0) {
+			/* Handling accept() errors */
+			if (INTERRUPTED_BY_SIGNAL ||
+				errno == EPROTO || errno == ECONNABORTED ||
+				errno == EMFILE || errno == ENFILE ||
+				errno == ENOBUFS || errno == ENOMEM
+					)
+				goto again;
+			else
+				err_msg ("(%s) error - accept() failed", prog_name);
 		} else {
-			/* Child Process */
-			close(s);				/* Slave close passive socket */
-			service(new); 	/* serve the client on socket NEW */
-			trace( printf("Terminated socket: %u\n", new) );
-			exit(0);
+			/* Starting service after positive accept() */
+			trace( showAddr("Accepted connection from", &caddr) );
+			trace( printf("new socket: %u\n",new) );
+
+			/* Concurrent implementation - PROCESS ON DEMAND */
+			if ((pid = fork()) < 0)
+				err_msg("(%s) error - fork() failed", prog_name);
+
+			if(pid > 0) {
+				/* Parent Process */
+				close(new);			/* Master close new socket */
+			} else {
+				/* Child Process */
+				close(s);				/* Slave close passive socket */
+				service(new); 	/* serve the client on socket NEW */
+				trace( printf("Terminated socket: %u\n", new) );
+				exit(0);
+			}
 		}
 	}
 

@@ -9,7 +9,7 @@
 #include	"../errlib.h"
 #include	"../sockwrap.h"
 
-#define BUFLEN	1024 /* BUFFER LENGTH */
+#define BUFLEN	2048 /* BUFFER LENGTH */
 #define TIMEOUT 5 	 /* TIMEOUT [s] */
 #define GET "GET "
 #define QUIT "QUIT\r\n"

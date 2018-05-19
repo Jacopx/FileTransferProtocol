@@ -13,8 +13,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <libgen.h>
+#include <errno.h>
 
-#define RBUFLEN	1024 /* Buffer length */
+#define RBUFLEN	2048 /* Buffer length */
 #define OK "+OK\r\n" /* Deflaut OK message */
 #define ERR "-ERR\r\n" /* Deflaut ERROR message */
 
@@ -75,14 +76,27 @@ int main (int argc, char *argv[]) {
 
 	/* main server loop */
 	for (;;) {
-		/* accept next connection */
+		/* accept() managing */
 		addrlen = sizeof(struct sockaddr_in);
-		s = Accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen);
-		trace( showAddr("Accepted connection from", &caddr) );
-		trace( printf("new socket: %u\n",s) );
+	again:
+		if ( (s = accept(conn_request_skt, (struct sockaddr *) &caddr, &addrlen)) < 0) {
+			/* Handling accept() errors */
+			if (INTERRUPTED_BY_SIGNAL ||
+				errno == EPROTO || errno == ECONNABORTED ||
+				errno == EMFILE || errno == ENFILE ||
+				errno == ENOBUFS || errno == ENOMEM
+					)
+				goto again;
+			else
+				err_msg ("(%s) error - accept() failed", prog_name);
+		} else {
+			/* Starting service after positive accept() */
+			trace( showAddr("Accepted connection from", &caddr) );
+			trace( printf("new socket: %u\n",s) );
 
-		/* serve the client on socket s */
-		service(s);
+			/* serve the client on socket s */
+			service(s);
+		}
 	}
 
 	printf("Routine server closed gracefully\n");
