@@ -68,3 +68,4 @@ When you have finished testing your client and server, you can use the test scri
 
 ### License
 The property of this project belongs to the Polytechnic of Turin since this project isn't delivered yet. After that it will be published under not-already defined license.
+

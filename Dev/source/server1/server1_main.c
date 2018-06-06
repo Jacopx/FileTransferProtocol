@@ -15,7 +15,7 @@
 #include <libgen.h>
 #include <errno.h>
 
-#define RBUFLEN	2048 /* Buffer length */
+#define RBUFLEN	4096 /* Buffer length */
 #define OK "+OK\r\n" /* Deflaut OK message */
 #define ERR "-ERR\r\n" /* Deflaut ERROR message */
 

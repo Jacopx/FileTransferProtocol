@@ -9,7 +9,7 @@
 #include	"../errlib.h"
 #include	"../sockwrap.h"
 
-#define BUFLEN	2048 /* BUFFER LENGTH */
+#define BUFLEN 4096 /* BUFFER LENGTH */
 #define TIMEOUT 5 	 /* TIMEOUT [s] */
 #define GET "GET "
 #define QUIT "QUIT\r\n"
@@ -25,10 +25,10 @@
 char *prog_name;
 
 int main (int argc, char *argv[]) {
-	char     buf[BUFLEN];		/* transmission buffer */
-	char	   rbuf[BUFLEN];	/* reception buffer */
+	char buf[BUFLEN];		/* transmission buffer */
+	char rbuf[BUFLEN];	/* reception buffer */
 
-	uint16_t	   tport_n, tport_h;	/* server port number (net/host ord) */
+	uint16_t tport_n, tport_h;	/* server port number (net/host ord) */
 	uint32_t size = 0, timestamp = 0; /* Size and Time variable */
 
 	int	s = 0, result = 0, bytesReceived = 0, totalBytes = 0;
@@ -60,6 +60,12 @@ int main (int argc, char *argv[]) {
 	s = Socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	trace( printf("done. Socket fd number: %d\n",s) );
 
+	/* Setting timeout in socket option */
+	tval.tv_sec = TIMEOUT;
+	tval.tv_usec = 0;
+	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
+	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tval, sizeof(tval));
+
 	/* prepare address structure */
 	bzero(&saddr, sizeof(saddr));
 	saddr.sin_family = AF_INET;
@@ -70,12 +76,6 @@ int main (int argc, char *argv[]) {
 	trace( showAddr("Connecting to target address", &saddr) );
 	Connect(s, (struct sockaddr *) &saddr, sizeof(saddr));
 	trace( printf("done.\nStarting cycling...\n") );
-
-	/* Setting timeout in socket option */
-	tval.tv_sec = TIMEOUT;
-	tval.tv_usec = 0;
-	setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tval, sizeof(tval));
-	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tval, sizeof(tval));
 
 	/* One cycle for each file remaining */
 	for(int i = 0; i < (argc - 3); ++i) {
